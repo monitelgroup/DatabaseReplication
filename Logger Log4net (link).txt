@@ -1,3 +1,0 @@
-log4net - http://logging.apache.org/log4net/download.html
-
-manual - http://megadarja.blogspot.com/2008/04/log4net.html
