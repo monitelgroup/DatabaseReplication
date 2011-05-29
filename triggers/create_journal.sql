@@ -1,0 +1,14 @@
+USE BasicTSQL;
+
+CREATE TABLE Sales.ShippersReplication (
+	id INT NOT NULL IDENTITY PRIMARY KEY,
+	event_time DATETIME NOT NULL DEFAULT(CURRENT_TIMESTAMP),
+	event_type NVARCHAR(10) NOT NULL,
+	login_name SYSNAME NOT NULL DEFAULT(SUSER_SNAME()),
+	shipperid_old INT DEFAULT(NULL),
+	companyname_old NVARCHAR(40) DEFAULT(NULL),
+	phone_old NVARCHAR(24) DEFAULT(NULL),
+	shipperid_new INT DEFAULT(NULL),
+	companyname_new NVARCHAR(40) DEFAULT(NULL),
+	phone_new NVARCHAR(24) DEFAULT(NULL)
+);
