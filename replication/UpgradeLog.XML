@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="replication">
+</Property><Property Name="Файл решения" Value="E:\replication\replication.sln">
+</Property><Property Name="Date" Value="3 июня 2011 г.">
+</Property><Property Name="Time" Value="14:46">
+</Property></Properties><Event ErrorLevel="0" Project="replication" Source="replication\replication.csproj" Description="Проект успешно преобразован">
+</Event><Event ErrorLevel="3" Project="replication" Source="replication\replication.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="replication.sln" Description="Преобразование решения успешно завершено">
+</Event><Event ErrorLevel="3" Project="" Source="replication.sln" Description="Converted">
+</Event><Event ErrorLevel="0" Project="replication" Source="replication\replication.csproj" Description="Сканирование завершено: обновление для файлов проекта не требуется.">
+</Event></UpgradeLog>

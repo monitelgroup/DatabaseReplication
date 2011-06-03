@@ -1,0 +1,17 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" ctype="Workspace" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="replication/ReplicationProcess.cs" ctype="Workbench">
+    <Files>
+      <File FileName="replication/Main.cs" Line="11" Column="16" />
+      <File FileName="replication/EMailSender.cs" Line="30" Column="44" />
+      <File FileName="replication/EMailSenderTest.cs" Line="10" Column="96" />
+      <File FileName="replication/ReplicationProcess.cs" Line="15" Column="4" />
+      <File FileName="replication/Configurator.cs" Line="25" Column="3" />
+      <File FileName="replication/EventTimer.cs" Line="32" Column="4" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches ctype="PinnedWatchStore" />
+</Properties>
