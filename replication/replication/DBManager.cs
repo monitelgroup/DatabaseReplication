@@ -24,6 +24,14 @@ namespace replication
             _connection.Close();
         }
 
+        public bool isConnected()
+        {
+            if (_connection.State == System.Data.ConnectionState.Open)
+            {
+                return true;
+            }
+            return false;
+        }
         public List<SqlResult> runQuery(string sqlCode)
         {
             var result = new List<SqlResult>();
@@ -98,6 +106,26 @@ namespace replication
                                         WHERE i.is_primary_key = 1 
                                             AND i.object_id = OBJECT_ID('" + tableName + @"');");
             return (int)result[0].Values[0];
+        }
+
+        public void CreateJournal(string tableName, List<string> columnNames, List<string> columnTypes)
+        {
+            string query = @"USE " + this._dbName + @"; CREATE TABLE " + tableName + @" ( 
+                            id INT NOT NULL IDENTITY PRIMARY KEY,
+	                        event_time DATETIME NOT NULL DEFAULT(CURRENT_TIMESTAMP),
+	                        event_type NVARCHAR(10) NOT NULL,
+	                        login_name SYSNAME NOT NULL DEFAULT(SUSER_SNAME())";
+            for(int i=0; i<columnNames.Count; i++) {
+                query += @" , " + columnNames[i] + @" " + columnTypes[i] + @" DEFAULT(NULL) ";
+            }
+            query += @");";
+
+            this.runQuery(query); 
+        }
+
+        public void DeleteJournal(string tableName)
+        {
+            this.runQuery(@"USE " + this._dbName + @"; DROP TABLE " + tableName + " ;");
         }
         
     }
