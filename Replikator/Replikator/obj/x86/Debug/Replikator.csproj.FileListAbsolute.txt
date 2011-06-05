@@ -1,0 +1,9 @@
+C:\Users\Андрей\Desktop\Replikator\Replikator\bin\Debug\Replikator.exe
+C:\Users\Андрей\Desktop\Replikator\Replikator\bin\Debug\Replikator.pdb
+C:\Users\Андрей\Desktop\Replikator\Replikator\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\Андрей\Desktop\Replikator\Replikator\obj\x86\Debug\Replikator.Properties.Resources.resources
+C:\Users\Андрей\Desktop\Replikator\Replikator\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Users\Андрей\Desktop\Replikator\Replikator\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Users\Андрей\Desktop\Replikator\Replikator\obj\x86\Debug\Replikator.exe
+C:\Users\Андрей\Desktop\Replikator\Replikator\obj\x86\Debug\Replikator.pdb
+C:\Users\Андрей\Desktop\Replikator\Replikator\obj\x86\Debug\Replikator.Replika.resources

@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Replicator MasterAutorization="Windows" MasterServerName="1" MasterUserName="2" MasterPassword="3" SlaveAutorization="Windows" SlaveServerName="4" SlaveUserName="5" SlavePassword="6" AdminEmail="7" JournalName="8" Timer="9" MaxBDError="10" />
