@@ -2,6 +2,9 @@ using System;
 
 namespace replication
 {
+    /// <summary>
+    /// Заглушка для конфигуратора
+    /// </summary>
 	public class Configurator
 	{
 		public string MasterDBName;
@@ -28,15 +31,15 @@ namespace replication
 			this.AdminEMail = "ra6fho@yandex.ru";
 			this.JournalName = "testjournal";
 			this.MainTimerValue = 2000;
-			this.MasterCompName = "ANTON-LAPTOP\\ANTON";
-			this.MasterDBName = "BasicTSQL";
+			this.MasterCompName = @"anton-laptop\anton";
+            this.MasterDBName = "BasicTSQL";
 			this.MasterDBPassword = "password";
 			this.MasterDBUser = "ANTON";
 			this.MaxDBErrorCount = 20;
 			this.progMail = "ra6fho@yandex.ru";
 			this.SecondaryTimerValue = 10000;
-			this.SlaveCompName = "ANTON-LAPTOP\\ANTON";
-			this.SlaveDBName = "BasicTSQLCopy";
+            this.SlaveCompName = @"anton-laptop\anton";
+            this.SlaveDBName = "BasicTSQL";
 			this.SlaveDBPassword = "password";
 			this.SlaveDBUser = "ANTON";
 			this.smtpHost = "smtp.yandex.ru";
