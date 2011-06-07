@@ -187,10 +187,14 @@ namespace replication
             if (result.Count == 0)
             {
                 Console.WriteLine("Primary key is not found in table {0}.{1}", schemaName, tableName);
+                var temp = this.GetTableInfo(schemaName, tableName);
+                return temp.ColumnNames[0];
             }
             if (result[0].ColumnCount == 0)
             {
                 Console.WriteLine("Primary key is not found in table {0}.{1]", schemaName, tableName);
+                var temp = this.GetTableInfo(schemaName, tableName);
+                return temp.ColumnNames[0];
             }
             return result[0].Values[0].ToString();
         }
@@ -221,12 +225,14 @@ namespace replication
             if (result.Count == 0)
             {
                 Console.WriteLine("Primary key is not found in table {0}.{1}", schemaName, tableName);
+                return -1;
             }
             if (result[0].ColumnCount == 0)
             {
                 Console.WriteLine("Primary key is not found in table {0}.{1}", schemaName, tableName);
+                return -1;
             }
-            return (int)result[0].Values[0];
+            return (int)result[0].Values[0]-1;
         }
 
         /// <summary>
@@ -243,13 +249,21 @@ namespace replication
         /// </param>
         public void CreateJournal(string schemaName, string tableName, SqlTableStruct tableStruct)
         {
+            if (this.IsObjectNotNull("ReplicJournals", schemaName + tableName))
+            {
+                return;
+            }
             string query = @"USE " + this._dbName + @"; CREATE TABLE ReplicJournals." + schemaName + tableName + @" ( 
                             id INT NOT NULL IDENTITY PRIMARY KEY,
 	                        event_time DATETIME NOT NULL DEFAULT(CURRENT_TIMESTAMP),
 	                        event_type NVARCHAR(10) NOT NULL,
 	                        login_name SYSNAME NOT NULL DEFAULT(SUSER_SNAME())";
             for(int i=0; i<tableStruct.ColumnCount; i++) {
-                query += @" , " + tableStruct.ColumnNames[i] + @" " + tableStruct.ColumnSqlTypes[i] + @" DEFAULT(NULL) ";
+                query += @" , " + tableStruct.ColumnNames[i] + @"_old " + tableStruct.ColumnSqlTypes[i] + @" DEFAULT(NULL) ";
+            }
+            for (int i = 0; i < tableStruct.ColumnCount; i++)
+            {
+                query += @" , " + tableStruct.ColumnNames[i] + @"_new " + tableStruct.ColumnSqlTypes[i] + @" DEFAULT(NULL) ";
             }
             query += @");";
 
@@ -309,6 +323,13 @@ namespace replication
                     columnType += "(" + result[i].Values[2].ToString() + ")";
                 }
                 retval.ColumnSqlTypes.Add(columnType);
+                retval.IsPrimaryKey.Add(false);
+            }
+            
+            int primary = this.GetPrimaryKeyId(schemaName, tableName);
+            if (primary != -1)
+            {
+                retval.IsPrimaryKey[primary] = true;
             }
             
             return retval;
@@ -455,6 +476,10 @@ namespace replication
         /// </param>
         public void CreateTriggerOnInsert(string schemaName, string tableName, string slaveDBName)
         {
+            if (this.IsObjectNotNull(schemaName, "Trigger_" + tableName + "_insert"))
+            {
+                return;
+            }
             string query = @"CREATE TRIGGER " + schemaName + @".Trigger_" + tableName + @"_insert
                             ON " + this._dbName +  "." +schemaName + @"." + tableName + @" AFTER INSERT
                             AS
@@ -486,6 +511,10 @@ namespace replication
         /// </param>
         public void CreateTriggerOnUpdate(string schemaName, string tableName, string slaveDBName)
         {
+            if (this.IsObjectNotNull(schemaName, "Trigger_" + tableName + "_update"))
+            {
+                return;
+            }
             string query = @"CREATE TRIGGER " + schemaName + @".Trigger_" + tableName + @"_update 
                             ON " + this._dbName + @"." + schemaName + @"." + tableName + @" AFTER UPDATE
                             AS 
@@ -523,6 +552,10 @@ namespace replication
         /// </param>
         public void CreateTriggerOnDelete(string schemaName, string tableName, string slaveDBName)
         {
+            if (this.IsObjectNotNull(schemaName, "Trigger_" + tableName + "_delete"))
+            {
+                return;
+            }
             string query = @"CREATE TRIGGER " + schemaName + @".Trigger_" + tableName + @"_delete 
                             ON " + this._dbName + @"." + schemaName + @"." + tableName + @" AFTER DELETE
                             AS 
@@ -540,5 +573,84 @@ namespace replication
             this.runQuery(query);
         }
 
+        /// <summary>
+        /// Проверяет существование объекта в БД
+        /// </summary>
+        /// <param name="objectSchema">
+        /// Схема в которой расположен объект
+        /// </param>
+        /// <param name="objectName">
+        /// Имя объекта
+        /// </param>
+        /// <returns></returns>
+        public bool IsObjectNotNull(string objectSchema, string objectName) {
+            var result = this.runQuery(@"USE " + this._dbName + @"; 
+                                        SELECT OBJECT_ID('" + objectSchema + "." + objectName + "');");
+            if (result.Count == 0)
+            {
+                return false;
+            }
+            if (result[0].ColumnCount == 0)
+            {
+                return false;
+            }
+            if (result[0].Values[0].ToString() == "")
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Создает таблицу
+        /// </summary>
+        /// <param name="schemaName">
+        /// Имя схемы в которой будет создана таблица
+        /// </param>
+        /// <param name="tableName">
+        /// Имя таблица
+        /// </param>
+        /// <param name="tableStruct">
+        /// Структура таблицы
+        /// </param>
+        public void CreateTable(string schemaName, string tableName, SqlTableStruct tableStruct)
+        {
+            if (this.IsObjectNotNull(schemaName, tableName))
+            {
+                Console.WriteLine("Object with name {0}.{1}.{2} already used.", this._dbName, schemaName, tableName);
+                return;
+            }
+            string query = @"USE " + this._dbName + @";
+                            CREATE TABLE " + schemaName + "." + tableName + @" (";
+            query += " " + tableStruct.ColumnNames[0] + " " + tableStruct.ColumnSqlTypes[0];
+            if (tableStruct.IsPrimaryKey[0] == true)
+            {
+                query += " PRIMARY KEY";
+            }
+            for (int i = 1; i < tableStruct.ColumnCount; i++)
+            {
+                query += ", " + tableStruct.ColumnNames[i] + " " + tableStruct.ColumnSqlTypes[i];
+                if (tableStruct.IsPrimaryKey[i] == true)
+                {
+                    query += " PRIMARY KEY";
+                }
+            }
+            query += ");";
+            this.runQuery(query);
+        }
+
+        /// <summary>
+        /// Создание схемы
+        /// </summary>
+        /// <param name="schemaName">
+        /// Имя схемы
+        /// </param>
+        public void CreateSchema(string schemaName)
+        {
+            this.runQuery(@"USE " + this._dbName + @";
+                            IF SCHEMA_ID('" + schemaName + @"') IS NULL
+                            EXEC('CREATE SCHEMA " + schemaName + ";');");
+        }
+       
     }
 }
