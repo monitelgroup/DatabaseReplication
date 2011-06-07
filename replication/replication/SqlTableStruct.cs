@@ -51,12 +51,28 @@ namespace replication
             get { return _columnSqlTypes; }
             set { _columnSqlTypes = value; }
         }
+
+        /// <summary>
+        /// Является ли столбец первичным ключом
+        /// </summary>
+        private List<bool> _isPrimaryKey;
+
+        /// <summary>
+        /// Является ли столбец первичным ключом
+        /// </summary>
+        public List<bool> IsPrimaryKey
+        {
+            get { return _isPrimaryKey; }
+            set { _isPrimaryKey = value; }
+        }
+ 
         
         public SqlTableStruct()
         {
             this._columnCount = 0;
             this._columnNames = new List<string>();
             this._columnSqlTypes = new List<string>();
+            this._isPrimaryKey = new List<bool>();
         }
     }
 }
