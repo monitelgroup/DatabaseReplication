@@ -104,6 +104,25 @@ namespace replication
         	Console.WriteLine("Timer is started");
             this.StartReplication();
     	}
+
+        public void FirstStart()
+        {
+            DBManager dbmMaster = new DBManager(this._config.MasterCompName, this._config.MasterDBName);
+            DBManager dbmSlave = new DBManager(this._config.SlaveCompName, this._config.SlaveDBName);
+            dbmSlave.CreateSchema("ReplicJournals");
+            
+            SqlDBStruct masterStruct = dbmMaster.GetDBInfo();
+            for (int i = 0; i < masterStruct.TablesCount; i++)
+            {
+                SqlTableStruct tempStruct = dbmMaster.GetTableInfo(masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
+                dbmSlave.CreateJournal(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
+                dbmMaster.CreateTriggerOnInsert(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                dbmMaster.CreateTriggerOnUpdate(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                dbmMaster.CreateTriggerOnDelete(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                dbmSlave.CreateSchema(masterStruct.SchemasNames[i]);
+                dbmSlave.CreateTable(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
+            }
+        }
 		
 	}
 }
