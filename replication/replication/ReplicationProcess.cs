@@ -14,26 +14,6 @@ namespace replication
 		private Configurator _config;
 		
         /// <summary>
-        /// Имя таблицы с журналом  
-        /// </summary>
-        private string _journalName;
-
-        /// <summary>
-        /// Имя схемы в которой расположен журнал
-        /// </summary>
-        private string _journalSchema;
-
-        /// <summary>
-        /// Таблица Slave
-        /// </summary>
-        private string _replicTable;
-
-        /// <summary>
-        /// Схема в которой расположена таблица Slave
-        /// </summary>
-        private string _replicSchema;
-		
-        /// <summary>
         /// Конструктор класса
         /// </summary>
         /// <param name="config">
@@ -41,25 +21,14 @@ namespace replication
         /// </param>
         public ReplicationProcess(Configurator config) {
 			this._config = config;
-            this._journalName = "ShippersReplication";
-            this._journalSchema = "Sales";
-            this._replicSchema = "Sales";
-            this._replicTable = "NewShippers";
 		}
 		
         /// <summary>
         /// Запуск чтения журнала и обработка найденных в нем записей
         /// </summary>
-		public void StartReplication() {
+		public void ReplicateOne(string journalSchema, string journalName, string slaveSchema, string slaveTable) {
             
-            DBManager dbmMaster = new DBManager(_config.MasterCompName, _config.MasterDBName);
             DBManager dbmSlave = new DBManager(_config.SlaveCompName, _config.SlaveDBName);
-            
-            if (!dbmMaster.IsConnected())
-            {
-                Console.WriteLine("Master DB is not working");
-                return;
-            }
 
             if (!dbmSlave.IsConnected())
             {
@@ -67,31 +36,30 @@ namespace replication
                 return;
             }
 
-            SqlResult firstRow = dbmMaster.ReadFirst(this._journalSchema, this._journalName);
+            SqlResult firstRow = dbmSlave.ReadFirst(journalSchema, journalName);
 
             while (firstRow.ColumnCount != 0)
             {
                 if (firstRow.Values[2].ToString() == "INSERTED")
                 {
                     Console.WriteLine("Processing INSERTED event...");
-                    dbmSlave.GenerateSqlOnInsert(this._journalSchema, this._journalName, this._replicSchema, this._replicTable, firstRow.Values[0].ToString());
+                    dbmSlave.GenerateSqlOnInsert(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
 
                 if (firstRow.Values[2].ToString() == "UPDATED")
                 {
                     Console.WriteLine("Processing UPDATED event...");
-                    dbmSlave.GenerateSqlOnUpdate(this._journalSchema, this._journalName, this._replicSchema, this._replicTable, firstRow.Values[0].ToString());
+                    dbmSlave.GenerateSqlOnUpdate(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
 
                 if (firstRow.Values[2].ToString() == "DELETED")
                 {
                     Console.WriteLine("Processing DELETED event...");
-                    dbmSlave.GenerateSqlOnDelete(this._journalSchema, this._journalName, this._replicSchema, this._replicTable, firstRow.Values[0].ToString());
+                    dbmSlave.GenerateSqlOnDelete(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
-                dbmMaster.RemoveFirst(this._journalSchema, this._journalName);
-                firstRow = dbmMaster.ReadFirst(this._journalSchema, this._journalName);
+                dbmSlave.RemoveFirst(journalSchema, journalName);
+                firstRow = dbmSlave.ReadFirst(journalSchema, journalName);
             }
-            dbmMaster.CloseConnection();
             dbmSlave.CloseConnection();
 		}
 		
@@ -102,10 +70,21 @@ namespace replication
         /// <param name="stateInfo"></param>
 		public void OnTimedEvent(Object stateInfo) {
         	Console.WriteLine("Timer is started");
-            this.StartReplication();
+            this.ReplicateAll();
     	}
 
-        public void FirstStart()
+        public void ReplicateAll()
+        {
+            DBManager dbmMaster = new DBManager(this._config.MasterCompName, this._config.MasterDBName);
+            SqlDBStruct masterStruct = dbmMaster.GetDBInfo();
+
+            for (int i = 0; i < masterStruct.TablesCount; i++)
+            {
+                this.ReplicateOne("ReplicJournals", masterStruct.SchemasNames[i] + masterStruct.TablesNames[i], masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
+            }
+        }
+
+        public void OnStart()
         {
             DBManager dbmMaster = new DBManager(this._config.MasterCompName, this._config.MasterDBName);
             DBManager dbmSlave = new DBManager(this._config.SlaveCompName, this._config.SlaveDBName);
@@ -121,8 +100,10 @@ namespace replication
                 dbmMaster.CreateTriggerOnDelete(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
                 dbmSlave.CreateSchema(masterStruct.SchemasNames[i]);
                 dbmSlave.CreateTable(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
+                dbmSlave.MergeTables(this._config.MasterDBName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
             }
         }
 		
 	}
 }
+
