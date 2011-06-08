@@ -7,9 +7,11 @@ namespace replication
 	{
 		public static void Main (string[] args)
 		{
+
 			Configurator config = new Configurator();
             ReplicationProcess testReplica = new ReplicationProcess(config);
-			EventTimer tmr = new EventTimer(config.MainTimerValue, testReplica.OnTimedEvent);
+            testReplica.OnStart();
+            EventTimer tmr = new EventTimer(config.MainTimerValue, testReplica.OnTimedEvent);
 			tmr.Start();
         }
 	}
