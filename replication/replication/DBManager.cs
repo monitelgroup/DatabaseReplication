@@ -175,7 +175,7 @@ namespace replication
         /// </returns>
         public string GetPrimaryKeyName(string schemaName, string tableName)
         {
-            var result = this.runQuery(@"USE BasicTSQL;
+            var result = this.runQuery(@"USE " + this._dbName + @";
                                         SELECT c.name AS column_name
                                         FROM sys.indexes AS i
                                         INNER JOIN sys.index_columns AS ic 
@@ -186,13 +186,13 @@ namespace replication
                                             AND i.object_id = OBJECT_ID('" + schemaName + "." + tableName + @"');");
             if (result.Count == 0)
             {
-                Console.WriteLine("Primary key is not found in table {0}.{1}", schemaName, tableName);
+                Console.WriteLine("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 var temp = this.GetTableInfo(schemaName, tableName);
                 return temp.ColumnNames[0];
             }
             if (result[0].ColumnCount == 0)
             {
-                Console.WriteLine("Primary key is not found in table {0}.{1]", schemaName, tableName);
+                Console.WriteLine("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 var temp = this.GetTableInfo(schemaName, tableName);
                 return temp.ColumnNames[0];
             }
@@ -213,7 +213,7 @@ namespace replication
         /// </returns>
         public int GetPrimaryKeyId(string schemaName, string tableName)
         {
-            var result = this.runQuery(@"USE BasicTSQL;
+            var result = this.runQuery(@"USE " + this._dbName + @";
                                         SELECT ic.index_column_id
                                         FROM sys.indexes AS i
                                         INNER JOIN sys.index_columns AS ic 
@@ -224,12 +224,12 @@ namespace replication
                                             AND i.object_id = OBJECT_ID('" + schemaName + "." + tableName + @"');");
             if (result.Count == 0)
             {
-                Console.WriteLine("Primary key is not found in table {0}.{1}", schemaName, tableName);
+                Console.WriteLine("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 return -1;
             }
             if (result[0].ColumnCount == 0)
             {
-                Console.WriteLine("Primary key is not found in table {0}.{1}", schemaName, tableName);
+                Console.WriteLine("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 return -1;
             }
             return (int)result[0].Values[0]-1;
@@ -391,19 +391,20 @@ namespace replication
         /// </param>
         public void GenerateSqlOnUpdate(string journalSchema, string journalName, string toReplicSchema, string toReplicTable, string journalRowID)
         {
-            string query = @"USE " + this._dbName + @" ;
-                            UPDATE " + toReplicSchema + @"." + toReplicTable + @" 
-	                            SET ";
-            SqlTableStruct replicStruct = this.GetTableInfo(toReplicSchema,toReplicTable);
-            query += replicStruct.ColumnNames[0] + @" = " + @"Journal." + replicStruct.ColumnNames[0] + @"_new";
-            for(int i=1; i<replicStruct.ColumnCount; i++) {
-                query += @", " + replicStruct.ColumnNames[i] + @" = " + @"Journal." + replicStruct.ColumnNames[i] + @"_new";
+            string query = @"USE " + this._dbName + @"; 
+                            UPDATE " + toReplicSchema +"." + toReplicTable + @"	
+                                SET ";
+            SqlTableStruct tableStruct = this.GetTableInfo(toReplicSchema,toReplicTable);
+            query += " " + tableStruct.ColumnNames[0] + " = " + journalSchema + "." + journalName + "." + tableStruct.ColumnNames[0] + "_new ";
+            for(int i=1; i<tableStruct.ColumnCount; i++) {
+                query += ", " + tableStruct.ColumnNames[i] + " = " + journalSchema + "." + journalName + "." + tableStruct.ColumnNames[i] + "_new ";
             }
             string primaryName = this.GetPrimaryKeyName(toReplicSchema, toReplicTable);
-            query += @" FROM " + toReplicSchema + @"." + toReplicTable + @" AS ToTable
-	                    JOIN " + journalSchema + "." + journalName + @" AS Journal
-	                    ON ToTable." + primaryName + @"= Journal." + primaryName + @"_old
-                        WHERE Journal.id = " + journalRowID + @";";
+            query += @"FROM " + toReplicSchema + "." + toReplicTable + @"
+                        JOIN " + journalSchema + "." + journalName + @"
+                            ON " + toReplicSchema + "." + toReplicTable + "." + primaryName + " = " + journalSchema + "." + journalName + "." + primaryName + @"_old 
+                      WHERE " + journalSchema + "." + journalName + ".id = " + journalRowID + ";";
+            Console.WriteLine("Sql-query on update: \n {0}", query);
             this.runQuery(query);
         }
 
@@ -650,6 +651,36 @@ namespace replication
             this.runQuery(@"USE " + this._dbName + @";
                             IF SCHEMA_ID('" + schemaName + @"') IS NULL
                             EXEC('CREATE SCHEMA " + schemaName + ";');");
+        }
+
+        public void MergeTables(string fromDBName, string fromSchemaName, string fromTableName, string toDBName, string toSchemaName, string toTableName) {
+            string primaryName = this.GetPrimaryKeyName(toSchemaName,toTableName);
+            string query = @"MERGE " + toDBName + "." + toSchemaName + "." + toTableName + @" AS TGT 
+                            USING " + fromDBName + "." + fromSchemaName + "." + fromTableName + @" AS SRC 
+	                            ON TGT." + primaryName + " = SRC." + primaryName + @" 
+                            WHEN MATCHED THEN
+	                            UPDATE SET ";
+            SqlTableStruct tableStruct = this.GetTableInfo(toSchemaName,toTableName);
+            query += " TGT." + tableStruct.ColumnNames[0] + " = SRC." + tableStruct.ColumnNames[0];
+            for(int i=1; i<tableStruct.ColumnCount; i++) {
+                query += " , TGT." + tableStruct.ColumnNames[i] + " = SRC." + tableStruct.ColumnNames[i];
+            }
+            query += @" WHEN NOT MATCHED THEN 
+	                        INSERT (";
+            query += " " + tableStruct.ColumnNames[0];
+            for(int i=1; i<tableStruct.ColumnCount; i++) {
+                query += ", " + tableStruct.ColumnNames[i];
+            }
+            query += @")
+	                VALUES (";
+            query += " SRC." + tableStruct.ColumnNames[0];
+            for(int i=1; i<tableStruct.ColumnCount; i++) {
+                 query += ", SRC." + tableStruct.ColumnNames[i];
+            }
+            query += @")
+                    WHEN NOT MATCHED BY SOURCE THEN
+	                    DELETE;";
+            this.runQuery(query);
         }
        
     }
