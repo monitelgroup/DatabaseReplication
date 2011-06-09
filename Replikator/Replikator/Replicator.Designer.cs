@@ -34,11 +34,15 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.MasterDBName = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
             this.MasterPassword = new System.Windows.Forms.TextBox();
             this.MasterUserName = new System.Windows.Forms.TextBox();
             this.MasterServerName = new System.Windows.Forms.TextBox();
             this.MasterAutorization = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.SlaveDBName = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.SlavePassword = new System.Windows.Forms.TextBox();
             this.SlaveUserName = new System.Windows.Forms.TextBox();
             this.SlaveServerName = new System.Windows.Forms.TextBox();
@@ -51,7 +55,7 @@
             this.Timer = new System.Windows.Forms.NumericUpDown();
             this.MaxBDError = new System.Windows.Forms.NumericUpDown();
             this.AdminEmail = new System.Windows.Forms.TextBox();
-            this.JournalName = new System.Windows.Forms.TextBox();
+            this.SchemeName = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
@@ -76,13 +80,13 @@
             // 
             // StartReplication
             // 
-            this.StartReplication.Location = new System.Drawing.Point(12, 536);
+            this.StartReplication.Location = new System.Drawing.Point(12, 579);
             this.StartReplication.Name = "StartReplication";
             this.StartReplication.Size = new System.Drawing.Size(99, 23);
             this.StartReplication.TabIndex = 0;
             this.StartReplication.Text = "StartReplication";
             this.StartReplication.UseVisualStyleBackColor = true;
-            this.StartReplication.Click += new System.EventHandler(this.StartReplication_Click);
+            this.StartReplication.Click += new System.EventHandler(this.StartReplication_Click_1);
             // 
             // label1
             // 
@@ -96,7 +100,7 @@
             // df
             // 
             this.df.AutoSize = true;
-            this.df.Location = new System.Drawing.Point(15, 146);
+            this.df.Location = new System.Drawing.Point(15, 168);
             this.df.Name = "df";
             this.df.Size = new System.Drawing.Size(53, 13);
             this.df.TabIndex = 2;
@@ -114,7 +118,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(15, 110);
+            this.label4.Location = new System.Drawing.Point(15, 132);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(58, 13);
             this.label4.TabIndex = 4;
@@ -123,6 +127,8 @@
             // groupBox1
             // 
             this.groupBox1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.groupBox1.Controls.Add(this.MasterDBName);
+            this.groupBox1.Controls.Add(this.label12);
             this.groupBox1.Controls.Add(this.MasterPassword);
             this.groupBox1.Controls.Add(this.MasterUserName);
             this.groupBox1.Controls.Add(this.MasterServerName);
@@ -134,14 +140,30 @@
             this.groupBox1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.groupBox1.Location = new System.Drawing.Point(12, 32);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(403, 174);
+            this.groupBox1.Size = new System.Drawing.Size(403, 199);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Master Config";
             // 
+            // MasterDBName
+            // 
+            this.MasterDBName.Location = new System.Drawing.Point(89, 99);
+            this.MasterDBName.Name = "MasterDBName";
+            this.MasterDBName.Size = new System.Drawing.Size(308, 20);
+            this.MasterDBName.TabIndex = 10;
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(15, 102);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(51, 13);
+            this.label12.TabIndex = 9;
+            this.label12.Text = "DB name";
+            // 
             // MasterPassword
             // 
-            this.MasterPassword.Location = new System.Drawing.Point(89, 143);
+            this.MasterPassword.Location = new System.Drawing.Point(89, 165);
             this.MasterPassword.Name = "MasterPassword";
             this.MasterPassword.PasswordChar = '*';
             this.MasterPassword.Size = new System.Drawing.Size(308, 20);
@@ -149,7 +171,7 @@
             // 
             // MasterUserName
             // 
-            this.MasterUserName.Location = new System.Drawing.Point(89, 107);
+            this.MasterUserName.Location = new System.Drawing.Point(89, 129);
             this.MasterUserName.Name = "MasterUserName";
             this.MasterUserName.Size = new System.Drawing.Size(308, 20);
             this.MasterUserName.TabIndex = 7;
@@ -174,6 +196,8 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.SlaveDBName);
+            this.groupBox2.Controls.Add(this.label13);
             this.groupBox2.Controls.Add(this.SlavePassword);
             this.groupBox2.Controls.Add(this.SlaveUserName);
             this.groupBox2.Controls.Add(this.SlaveServerName);
@@ -182,16 +206,32 @@
             this.groupBox2.Controls.Add(this.label5);
             this.groupBox2.Controls.Add(this.label6);
             this.groupBox2.Controls.Add(this.label7);
-            this.groupBox2.Location = new System.Drawing.Point(10, 215);
+            this.groupBox2.Location = new System.Drawing.Point(12, 237);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(403, 176);
+            this.groupBox2.Size = new System.Drawing.Size(403, 203);
             this.groupBox2.TabIndex = 9;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Slave Config";
             // 
+            // SlaveDBName
+            // 
+            this.SlaveDBName.Location = new System.Drawing.Point(87, 95);
+            this.SlaveDBName.Name = "SlaveDBName";
+            this.SlaveDBName.Size = new System.Drawing.Size(308, 20);
+            this.SlaveDBName.TabIndex = 10;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(13, 98);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(51, 13);
+            this.label13.TabIndex = 9;
+            this.label13.Text = "DB name";
+            // 
             // SlavePassword
             // 
-            this.SlavePassword.Location = new System.Drawing.Point(89, 143);
+            this.SlavePassword.Location = new System.Drawing.Point(89, 172);
             this.SlavePassword.Name = "SlavePassword";
             this.SlavePassword.PasswordChar = '*';
             this.SlavePassword.Size = new System.Drawing.Size(308, 20);
@@ -199,7 +239,7 @@
             // 
             // SlaveUserName
             // 
-            this.SlaveUserName.Location = new System.Drawing.Point(89, 107);
+            this.SlaveUserName.Location = new System.Drawing.Point(89, 136);
             this.SlaveUserName.Name = "SlaveUserName";
             this.SlaveUserName.Size = new System.Drawing.Size(308, 20);
             this.SlaveUserName.TabIndex = 7;
@@ -225,7 +265,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(15, 146);
+            this.label2.Location = new System.Drawing.Point(15, 175);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 13);
             this.label2.TabIndex = 2;
@@ -243,7 +283,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(15, 110);
+            this.label6.Location = new System.Drawing.Point(15, 139);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(58, 13);
             this.label6.TabIndex = 4;
@@ -263,12 +303,12 @@
             this.groupBox3.Controls.Add(this.Timer);
             this.groupBox3.Controls.Add(this.MaxBDError);
             this.groupBox3.Controls.Add(this.AdminEmail);
-            this.groupBox3.Controls.Add(this.JournalName);
+            this.groupBox3.Controls.Add(this.SchemeName);
             this.groupBox3.Controls.Add(this.label8);
             this.groupBox3.Controls.Add(this.label9);
             this.groupBox3.Controls.Add(this.label10);
             this.groupBox3.Controls.Add(this.label11);
-            this.groupBox3.Location = new System.Drawing.Point(10, 401);
+            this.groupBox3.Location = new System.Drawing.Point(10, 446);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(403, 127);
             this.groupBox3.TabIndex = 10;
@@ -301,12 +341,12 @@
             this.AdminEmail.Size = new System.Drawing.Size(308, 20);
             this.AdminEmail.TabIndex = 9;
             // 
-            // JournalName
+            // SchemeName
             // 
-            this.JournalName.Location = new System.Drawing.Point(89, 64);
-            this.JournalName.Name = "JournalName";
-            this.JournalName.Size = new System.Drawing.Size(308, 20);
-            this.JournalName.TabIndex = 6;
+            this.SchemeName.Location = new System.Drawing.Point(89, 64);
+            this.SchemeName.Name = "SchemeName";
+            this.SchemeName.Size = new System.Drawing.Size(308, 20);
+            this.SchemeName.TabIndex = 6;
             // 
             // label8
             // 
@@ -340,13 +380,13 @@
             this.label11.AutoSize = true;
             this.label11.Location = new System.Drawing.Point(15, 64);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(70, 13);
+            this.label11.Size = new System.Drawing.Size(75, 13);
             this.label11.TabIndex = 3;
-            this.label11.Text = "Journal name";
+            this.label11.Text = "Scheme name";
             // 
             // exit
             // 
-            this.exit.Location = new System.Drawing.Point(316, 536);
+            this.exit.Location = new System.Drawing.Point(316, 579);
             this.exit.Name = "exit";
             this.exit.Size = new System.Drawing.Size(99, 23);
             this.exit.TabIndex = 11;
@@ -380,21 +420,21 @@
             this.loadConfigToolStripMenuItem.Name = "loadConfigToolStripMenuItem";
             this.loadConfigToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.loadConfigToolStripMenuItem.Text = "Load Config";
-            this.loadConfigToolStripMenuItem.Click += new System.EventHandler(this.loadConfigToolStripMenuItem_Click);
+            this.loadConfigToolStripMenuItem.Click += new System.EventHandler(this.loadConfigToolStripMenuItem_Click_1);
             // 
             // saveConfigToolStripMenuItem
             // 
             this.saveConfigToolStripMenuItem.Name = "saveConfigToolStripMenuItem";
             this.saveConfigToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.saveConfigToolStripMenuItem.Text = "SaveConfig";
-            this.saveConfigToolStripMenuItem.Click += new System.EventHandler(this.saveConfigToolStripMenuItem_Click);
+            this.saveConfigToolStripMenuItem.Click += new System.EventHandler(this.saveConfigToolStripMenuItem_Click_1);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click_1);
             // 
             // helpToolStripMenuItem
             // 
@@ -409,7 +449,7 @@
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click_1);
             // 
             // openFileDialog
             // 
@@ -420,7 +460,7 @@
             this.AcceptButton = this.exit;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(425, 567);
+            this.ClientSize = new System.Drawing.Size(425, 614);
             this.Controls.Add(this.exit);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
@@ -468,7 +508,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.TextBox JournalName;
+        private System.Windows.Forms.TextBox SchemeName;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label10;
@@ -486,6 +526,10 @@
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
+        private System.Windows.Forms.TextBox MasterDBName;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.TextBox SlaveDBName;
+        private System.Windows.Forms.Label label13;
     }
 }
 
