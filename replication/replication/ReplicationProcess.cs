@@ -76,6 +76,11 @@ namespace replication
         public void ReplicateAll()
         {
             DBManager dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBName);
+            if (!dbmMaster.IsConnected())
+            {
+                Console.WriteLine("Master DB is not working");
+                return;
+            }
             SqlDBStruct masterStruct = dbmMaster.GetDBInfo();
 
             for (int i = 0; i < masterStruct.TablesCount; i++)
@@ -87,7 +92,18 @@ namespace replication
         public void OnStart()
         {
             DBManager dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBName);
+            if (!dbmMaster.IsConnected())
+            {
+                Console.WriteLine("Master DB is not working");
+                return;
+            }
+
             DBManager dbmSlave = new DBManager(this._config.SlaveServerName, this._config.SlaveDBName);
+            if (!dbmSlave.IsConnected())
+            {
+                Console.WriteLine("Slave DB is not working");
+                return;
+            }
             dbmSlave.CreateSchema("ReplicJournals");
             
             SqlDBStruct masterStruct = dbmMaster.GetDBInfo();

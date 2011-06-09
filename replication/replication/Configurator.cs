@@ -1,5 +1,5 @@
 using System;
-using System.Xml;
+
 
 namespace replication
 {
@@ -8,10 +8,14 @@ namespace replication
     /// </summary>
 	public class Configurator
 	{
+
+        public string MasterAutorization;
 		public string MasterDBName;
         public string MasterDBUser;
         public string MasterDBPassword;
         public string MasterServerName;
+
+        public string SlaveAutorization;
 		public string SlaveDBName;
         public string SlaveDBUser;
         public string SlaveDBPassword;
@@ -32,52 +36,29 @@ namespace replication
             try
             {
                 var CL = new ConfLoader(configFileName);
-                CL.LoadConfig("MasterAutorization");
-                CL.LoadConfig("MasterServerName");
-                CL.LoadConfig("MasterDBName");
-                CL.LoadConfig("MasterDBUser");
-                CL.LoadConfig("MasterDBPassword");
+                this.MasterAutorization = CL.LoadConfig("MasterAutorization");
+                this.MasterServerName = CL.LoadConfig("MasterServerName");
+                this.MasterDBName = CL.LoadConfig("MasterDBName");
+                this.MasterDBUser = CL.LoadConfig("MasterDBUser");
+                this.MasterDBPassword = CL.LoadConfig("MasterDBPassword");
 
-                CL.LoadConfig("SlaveAutorization");
-                CL.LoadConfig("SlaveServerName");
-                CL.LoadConfig("SlaveDBName");
-                CL.LoadConfig("SlaveDBUser");
-                CL.LoadConfig("SlaveDBPassword");
+                this.SlaveAutorization = CL.LoadConfig("SlaveAutorization");
+                this.SlaveServerName = CL.LoadConfig("SlaveServerName");
+                this.SlaveDBName = CL.LoadConfig("SlaveDBName");
+                this.SlaveDBUser = CL.LoadConfig("SlaveDBUser");
+                this.SlaveDBPassword = CL.LoadConfig("SlaveDBPassword");
 
-                CL.LoadConfig("AdminEmail");
-                CL.LoadConfig("SchemeName");
-                CL.LoadConfig("Timer");
+                this.AdminEMail = CL.LoadConfig("AdminEmail");
+                this.SchemeName = CL.LoadConfig("SchemeName");
+                this.MainTimerValue = CL.LoadIntConfig("Timer");
             }
-            catch (System.IO.FileNotFoundException) { }
-            catch (System.Xml.XmlException) { }
-        }
-
-            public class ConfLoader
-                {   // Получение значений конфига
-                     XmlDocument xmlDoc;
-                    
-            public ConfLoader(string ConfXML)
-            {
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.Load(ConfXML);
-                this.xmlDoc = xmlDoc;
+            catch (System.IO.FileNotFoundException exp) {
+                Console.WriteLine("File Not Found. Check file address. \n Error details:\n {0}",exp.Message);
             }
-
-            public string LoadConfig(string param)    // Читеем параметр из конфига, если его нет возвращеем пустую строку
-            {
-                foreach (XmlNode attr in this.xmlDoc.DocumentElement.Attributes)
-                {
-                    if (param == attr.Name) { return attr.Value; }
-                }
-                return "";
-            }
-
-            public int LoadIntConfig(string param)  // Пытаемся преобразовать параметр в число
-            {
-                return System.Convert.ToInt32(LoadConfig(param));
+            catch (System.Xml.XmlException exp) { 
+                Console.WriteLine("Error in XML file. \n Error details:\n {0}", exp.Message);
             }
         }
-
 	}
 }
 

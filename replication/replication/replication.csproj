@@ -56,6 +56,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfLoader.cs" />
     <Compile Include="DBManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
@@ -63,7 +64,9 @@
     <Compile Include="ReplicationProcess.cs" />
     <Compile Include="Configurator.cs" />
     <Compile Include="EventTimer.cs" />
+    <Compile Include="SqlDBStruct.cs" />
     <Compile Include="SqlResult.cs" />
+    <Compile Include="SqlTableStruct.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
