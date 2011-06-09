@@ -28,7 +28,7 @@ namespace replication
         /// </summary>
 		public void ReplicateOne(string journalSchema, string journalName, string slaveSchema, string slaveTable) {
             
-            DBManager dbmSlave = new DBManager(_config.SlaveCompName, _config.SlaveDBName);
+            DBManager dbmSlave = new DBManager(_config.SlaveServerName, _config.SlaveDBName);
 
             if (!dbmSlave.IsConnected())
             {
@@ -75,7 +75,7 @@ namespace replication
 
         public void ReplicateAll()
         {
-            DBManager dbmMaster = new DBManager(this._config.MasterCompName, this._config.MasterDBName);
+            DBManager dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBName);
             SqlDBStruct masterStruct = dbmMaster.GetDBInfo();
 
             for (int i = 0; i < masterStruct.TablesCount; i++)
@@ -86,8 +86,8 @@ namespace replication
 
         public void OnStart()
         {
-            DBManager dbmMaster = new DBManager(this._config.MasterCompName, this._config.MasterDBName);
-            DBManager dbmSlave = new DBManager(this._config.SlaveCompName, this._config.SlaveDBName);
+            DBManager dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBName);
+            DBManager dbmSlave = new DBManager(this._config.SlaveServerName, this._config.SlaveDBName);
             dbmSlave.CreateSchema("ReplicJournals");
             
             SqlDBStruct masterStruct = dbmMaster.GetDBInfo();
