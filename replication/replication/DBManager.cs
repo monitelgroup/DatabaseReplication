@@ -81,7 +81,7 @@ namespace replication
         /// <returns>
         /// Список строк полученных в результате выполнения запроса
         /// </returns>
-        public List<SqlResult> runQuery(string sqlCode)
+        public List<SqlResult> RunQuery(string sqlCode)
         {
             var result = new List<SqlResult>();
             try
@@ -126,7 +126,7 @@ namespace replication
         public SqlResult ReadFirst(string schemaName, string tableName)
         {
             string primaryKey = this.GetPrimaryKeyName(schemaName, tableName);
-            var result = this.runQuery(@"USE " + this._dbName + @";
+            var result = this.RunQuery(@"USE " + this._dbName + @";
                             DECLARE @min AS INT;
                             SELECT @min=MIN(" + primaryKey + @") 
                             FROM " + schemaName + "." + tableName + @";
@@ -152,7 +152,7 @@ namespace replication
         public void RemoveFirst(string schemaName, string tableName)
         {
             string primaryKey = this.GetPrimaryKeyName(schemaName, tableName);
-            this.runQuery(@"USE " + this._dbName + @";
+            this.RunQuery(@"USE " + this._dbName + @";
                             DECLARE @min AS INT;
                             SELECT @min=MIN(" + primaryKey + @") 
                             FROM " + schemaName + "." + tableName + @";
@@ -175,7 +175,7 @@ namespace replication
         /// </returns>
         public string GetPrimaryKeyName(string schemaName, string tableName)
         {
-            var result = this.runQuery(@"USE " + this._dbName + @";
+            var result = this.RunQuery(@"USE " + this._dbName + @";
                                         SELECT c.name AS column_name
                                         FROM sys.indexes AS i
                                         INNER JOIN sys.index_columns AS ic 
@@ -213,7 +213,7 @@ namespace replication
         /// </returns>
         public int GetPrimaryKeyId(string schemaName, string tableName)
         {
-            var result = this.runQuery(@"USE " + this._dbName + @";
+            var result = this.RunQuery(@"USE " + this._dbName + @";
                                         SELECT ic.index_column_id
                                         FROM sys.indexes AS i
                                         INNER JOIN sys.index_columns AS ic 
@@ -267,7 +267,7 @@ namespace replication
             }
             query += @");";
 
-            this.runQuery(query); 
+            this.RunQuery(query); 
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace replication
         /// </param>
         public void DeleteJournal(string schemaName, string tableName)
         {
-            this.runQuery(@"USE " + this._dbName + @"; DROP TABLE ReplicJournals." + schemaName + tableName + " ;");
+            this.RunQuery(@"USE " + this._dbName + @"; DROP TABLE ReplicJournals." + schemaName + tableName + " ;");
         }
 
         /// <summary>
@@ -297,7 +297,7 @@ namespace replication
         /// Имена столбцов таблицы и их типы данных
         /// </returns>
         public SqlTableStruct GetTableInfo(string schemaName, string tableName) {
-            var result = this.runQuery(@"USE " + this._dbName + @" ; 
+            var result = this.RunQuery(@"USE " + this._dbName + @" ; 
                             DECLARE @schemaid AS INT;
                             DECLARE @tableid AS INT;
                             SELECT @schemaid = schema_id
@@ -344,20 +344,20 @@ namespace replication
         /// <param name="journalName">
         /// Имя журнала
         /// </param>
-        /// <param name="toReplicSchema">
+        /// <param name="slaveSchema">
         /// Имя схема в которо расположена таблица Slave
         /// </param>
-        /// <param name="toReplicTable">
+        /// <param name="slaveTable">
         /// Имя таблицы Slave
         /// </param>
         /// <param name="journalRowID">
         /// id в журнале, которое будет обработано
         /// </param>
-        public void GenerateSqlOnInsert(string journalSchema, string journalName, string toReplicSchema, string toReplicTable, string journalRowID)
+        public void GenerateSqlOnInsert(string journalSchema, string journalName, string slaveSchema, string slaveTable, string journalRowID)
         {
             string query = @"USE " + this._dbName + @" ; 
-                            INSERT INTO "+ toReplicSchema + @"." + toReplicTable + @"(";
-            SqlTableStruct replicStruct = this.GetTableInfo(toReplicSchema,toReplicTable);
+                            INSERT INTO " + slaveSchema + @"." + slaveTable + @"(";
+            SqlTableStruct replicStruct = this.GetTableInfo(slaveSchema, slaveTable);
             query += replicStruct.ColumnNames[0];
             for(int i=1; i<replicStruct.ColumnCount; i++) {
                 query += @", " + replicStruct.ColumnNames[i];
@@ -368,7 +368,7 @@ namespace replication
             }
             query += @" FROM " + journalSchema + "." + journalName + @" WHERE id = " + journalRowID + @";";
 
-            this.runQuery(query);
+            this.RunQuery(query);
         }
 
         /// <summary>
@@ -380,32 +380,31 @@ namespace replication
         /// <param name="journalName">
         /// Имя журнала
         /// </param>
-        /// <param name="toReplicSchema">
+        /// <param name="slaveSchema">
         /// Имя схема в которо расположена таблица Slave
         /// </param>
-        /// <param name="toReplicTable">
+        /// <param name="slaveTable">
         /// Имя таблицы Slave
         /// </param>
         /// <param name="journalRowID">
         /// id в журнале, которое будет обработано
         /// </param>
-        public void GenerateSqlOnUpdate(string journalSchema, string journalName, string toReplicSchema, string toReplicTable, string journalRowID)
+        public void GenerateSqlOnUpdate(string journalSchema, string journalName, string slaveSchema, string slaveTable, string journalRowID)
         {
             string query = @"USE " + this._dbName + @"; 
-                            UPDATE " + toReplicSchema +"." + toReplicTable + @"	
+                            UPDATE " + slaveSchema + "." + slaveTable + @"	
                                 SET ";
-            SqlTableStruct tableStruct = this.GetTableInfo(toReplicSchema,toReplicTable);
+            SqlTableStruct tableStruct = this.GetTableInfo(slaveSchema, slaveTable);
             query += " " + tableStruct.ColumnNames[0] + " = " + journalSchema + "." + journalName + "." + tableStruct.ColumnNames[0] + "_new ";
             for(int i=1; i<tableStruct.ColumnCount; i++) {
                 query += ", " + tableStruct.ColumnNames[i] + " = " + journalSchema + "." + journalName + "." + tableStruct.ColumnNames[i] + "_new ";
             }
-            string primaryName = this.GetPrimaryKeyName(toReplicSchema, toReplicTable);
-            query += @"FROM " + toReplicSchema + "." + toReplicTable + @"
+            string primaryName = this.GetPrimaryKeyName(slaveSchema, slaveTable);
+            query += @"FROM " + slaveSchema + "." + slaveTable + @"
                         JOIN " + journalSchema + "." + journalName + @"
-                            ON " + toReplicSchema + "." + toReplicTable + "." + primaryName + " = " + journalSchema + "." + journalName + "." + primaryName + @"_old 
+                            ON " + slaveSchema + "." + slaveTable + "." + primaryName + " = " + journalSchema + "." + journalName + "." + primaryName + @"_old 
                       WHERE " + journalSchema + "." + journalName + ".id = " + journalRowID + ";";
-            Console.WriteLine("Sql-query on update: \n {0}", query);
-            this.runQuery(query);
+            this.RunQuery(query);
         }
 
         /// <summary>
@@ -417,25 +416,25 @@ namespace replication
         /// <param name="journalName">
         /// Имя журнала
         /// </param>
-        /// <param name="toReplicSchema">
+        /// <param name="slaveSchema">
         /// Имя схема в которо расположена таблица Slave
         /// </param>
-        /// <param name="toReplicTable">
+        /// <param name="slaveTable">
         /// Имя таблицы Slave
         /// </param>
         /// <param name="journalRowID">
         /// id в журнале, которое будет обработано
         /// </param>
-        public void GenerateSqlOnDelete(string journalSchema, string journalName, string toReplicSchema, string toReplicTable, string journalRowID)
+        public void GenerateSqlOnDelete(string journalSchema, string journalName, string slaveSchema, string slaveTable, string journalRowID)
         {
-            string primaryName = this.GetPrimaryKeyName(toReplicSchema, toReplicTable);
+            string primaryName = this.GetPrimaryKeyName(slaveSchema, slaveTable);
             string query = @"USE " + this._dbName + @"; 
                             DELETE FROM NS 
-                            FROM " + toReplicSchema + @"." + toReplicTable + @" AS NS 
+                            FROM " + slaveSchema + @"." + slaveTable + @" AS NS 
 	                            JOIN " + journalSchema + "." + journalName + @" AS SR 
 		                            ON NS." + primaryName + @" = SR." + primaryName + @"_old 
                             WHERE SR.id = " + journalRowID + @";";
-            this.runQuery(query);
+            this.RunQuery(query);
         }
 
         /// <summary>
@@ -446,7 +445,7 @@ namespace replication
         /// </returns>
         public SqlDBStruct GetDBInfo()
         {
-            var result = this.runQuery(@"USE " + this._dbName + @";
+            var result = this.RunQuery(@"USE " + this._dbName + @";
                                         SELECT SS.name, SO.name, SO.object_id
                                         FROM sys.objects AS SO
 	                                        JOIN sys.schemas AS SS
@@ -495,7 +494,7 @@ namespace replication
                 query += @", " + tableStruct.ColumnNames[i];
             }
             query += @" FROM inserted;";
-            this.runQuery(query);
+            this.RunQuery(query);
         }
 
         /// <summary>
@@ -530,13 +529,13 @@ namespace replication
             }
             query += @") SELECT event_type = 'UPDATED'";
             for(int i=0; i<tableStruct.ColumnCount; i++) {
-                query += @", I." + tableStruct.ColumnNames[i]; 
-            }
-            for(int i=0; i<tableStruct.ColumnCount; i++) {
                 query += @", D." + tableStruct.ColumnNames[i]; 
             }
+            for(int i=0; i<tableStruct.ColumnCount; i++) {
+                query += @", I." + tableStruct.ColumnNames[i]; 
+            }
             query += @"	FROM inserted AS I, deleted AS D;";
-            this.runQuery(query);
+            this.RunQuery(query);
         }
 
         /// <summary>
@@ -571,7 +570,7 @@ namespace replication
                 query += @", " + tableStruct.ColumnNames[i];
             }
             query += @"	FROM deleted;";
-            this.runQuery(query);
+            this.RunQuery(query);
         }
 
         /// <summary>
@@ -585,7 +584,7 @@ namespace replication
         /// </param>
         /// <returns></returns>
         public bool IsObjectNotNull(string objectSchema, string objectName) {
-            var result = this.runQuery(@"USE " + this._dbName + @"; 
+            var result = this.RunQuery(@"USE " + this._dbName + @"; 
                                         SELECT OBJECT_ID('" + objectSchema + "." + objectName + "');");
             if (result.Count == 0)
             {
@@ -637,7 +636,7 @@ namespace replication
                 }
             }
             query += ");";
-            this.runQuery(query);
+            this.RunQuery(query);
         }
 
         /// <summary>
@@ -648,11 +647,32 @@ namespace replication
         /// </param>
         public void CreateSchema(string schemaName)
         {
-            this.runQuery(@"USE " + this._dbName + @";
+            this.RunQuery(@"USE " + this._dbName + @";
                             IF SCHEMA_ID('" + schemaName + @"') IS NULL
                             EXEC('CREATE SCHEMA " + schemaName + ";');");
         }
 
+        /// <summary>
+        /// Слияние двух таблиц
+        /// </summary>
+        /// <param name="fromDBName">
+        /// Имя базы данных источника
+        /// </param>
+        /// <param name="fromSchemaName">
+        /// Имя схемы данных источника
+        /// </param>
+        /// <param name="fromTableName">
+        /// Имя таблицы источника
+        /// </param>
+        /// <param name="toDBName">
+        /// Имя базы данных цели
+        /// </param>
+        /// <param name="toSchemaName">
+        /// Имя схемы цели
+        /// </param>
+        /// <param name="toTableName">
+        /// Имя целевой таблицы
+        /// </param>
         public void MergeTables(string fromDBName, string fromSchemaName, string fromTableName, string toDBName, string toSchemaName, string toTableName) {
             string primaryName = this.GetPrimaryKeyName(toSchemaName,toTableName);
             string query = @"MERGE " + toDBName + "." + toSchemaName + "." + toTableName + @" AS TGT 
@@ -680,7 +700,19 @@ namespace replication
             query += @")
                     WHEN NOT MATCHED BY SOURCE THEN
 	                    DELETE;";
-            this.runQuery(query);
+            this.RunQuery(query);
+        }
+
+        /// <summary>
+        /// Создает базу данных
+        /// </summary>
+        /// <param name="dbName">
+        /// Имя базы данных
+        /// </param>
+        public void CreateDB(string dbName)
+        {
+            this.RunQuery(@"IF DB_ID('" + dbName + @"') IS NOT NULL
+                            CREATE DATABASE " + dbName + ";");
         }
        
     }
