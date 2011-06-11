@@ -3,9 +3,9 @@ E:\replication\replication\bin\Debug\replication.exe
 E:\replication\replication\bin\Debug\replication.pdb
 E:\replication\replication\obj\x86\Debug\replication.exe
 E:\replication\replication\obj\x86\Debug\replication.pdb
-C:\Users\anton\Desktop\DatabaseReplication\replication\replication\obj\x86\Debug\replication.exe
-C:\Users\anton\Desktop\DatabaseReplication\replication\replication\obj\x86\Debug\replication.pdb
 C:\Users\anton\Desktop\DatabaseReplication\replication\replication\bin\Debug\replication.exe
 C:\Users\anton\Desktop\DatabaseReplication\replication\replication\bin\Debug\replication.pdb
-C:\Users\anton\Desktop\DatabaseReplication\replication\replication\obj\x86\Debug\ResolveAssemblyReference.cache
 C:\Users\anton\Desktop\DatabaseReplication\replication\replication\bin\Debug\log4net.dll
+C:\Users\anton\Desktop\DatabaseReplication\replication\replication\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\anton\Desktop\DatabaseReplication\replication\replication\obj\x86\Debug\replication.exe
+C:\Users\anton\Desktop\DatabaseReplication\replication\replication\obj\x86\Debug\replication.pdb

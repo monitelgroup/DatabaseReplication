@@ -78,19 +78,24 @@ namespace replication
         /// Адресс куда будет отправлено сообщение
         /// </param>
 		public void SendMessage(string message, string adminEMail) {
-			MailMessage msg = new MailMessage();
-			msg.From = new MailAddress(this._emailAdress);
-			msg.To.Add(new MailAddress(adminEMail));
-			msg.Subject = "DataBase Replication: Error!";
-			msg.Body = message;
             try
             {
+                MailMessage msg = new MailMessage();
+                msg.From = new MailAddress(this._emailAdress);
+                msg.To.Add(new MailAddress(adminEMail));
+                msg.Subject = "DataBase Replication: Error!";
+                msg.Body = message;
                 _smtp.Send(msg);
             }
             catch (System.Net.Mail.SmtpException exp)
             {
                 Console.WriteLine("Error send message. \n Error details: \n {0}", exp.Message);
                 _log.ErrorFormat("Error send message. \n Error details: \n {0}", exp.Message);
+            }
+            catch (System.ArgumentNullException exp)
+            {
+                Console.WriteLine("Error in config. \n Error details: \n {0}", exp.Message);
+                _log.ErrorFormat("Error in config. \n Error details: \n {0}", exp.Message);
             }
 		}
 		

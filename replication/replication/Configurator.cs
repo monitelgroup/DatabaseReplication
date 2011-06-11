@@ -102,6 +102,10 @@ namespace replication
         /// </summary>
 		public string progMail;
 
+        public int maxDBErrorCount;
+        public int secondaryTimer;
+        public bool SendMail;
+
         /// <summary>
         /// Конструктор класса. Получает настройки из файла конфигурации
         /// </summary>
@@ -128,6 +132,9 @@ namespace replication
                 this.AdminEMail = CL.LoadConfig("AdminEmail");
                 this.SchemeName = CL.LoadConfig("SchemeName");
                 this.MainTimerValue = CL.LoadIntConfig("Timer");
+                this.maxDBErrorCount = 1;
+                this.secondaryTimer = 10000;
+                this.SendMail = true;
             }
             catch (System.IO.FileNotFoundException exp) {
                 Console.WriteLine("File Not Found. Check file address. \n Error details:\n {0}",exp.Message);
@@ -137,6 +144,24 @@ namespace replication
                 Console.WriteLine("Error in XML file. \n Error details:\n {0}", exp.Message);
                 _log.ErrorFormat("Error in XML file. \n Error details:\n {0}", exp.Message);
             }
+        }
+
+        /// <summary>
+        /// Проверяет тип соединения
+        /// </summary>
+        /// <param name="authType">
+        /// Тип соединения в виде строки: Windows или Sql
+        /// </param>
+        /// <returns>
+        /// True - если Windows. Иначе False
+        /// </returns>
+        public bool IsWindowsAuth(string authType)
+        {
+            if (authType == "Windows")
+            {
+                return true;
+            }
+            return false;
         }
 	}
 }

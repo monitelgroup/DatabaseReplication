@@ -29,9 +29,25 @@ namespace replication
         /// <param name="dbName">
         /// Имя базы данных
         /// </param>
-        public DBManager(string compName, string dbName) {
+        public DBManager(string serverName, string dbName)
+        {
             this._dbName = dbName;
-            this._connection = new SqlConnection(@"Data Source=" + compName + ";Initial Catalog=" + dbName + ";Integrated Security=True");
+            this._connection = new SqlConnection(@"Data Source=" + serverName + ";Integrated Security=True");
+            try
+            {
+                this._connection.Open();
+            }
+            catch (SqlException exp)
+            {
+                Console.WriteLine("Can not connect to database... \n Error details: \n {0}", exp.Message);
+                _log.ErrorFormat("Can not connect to database... \n Error details: \n {0}", exp.Message);
+            }
+        }
+
+        public DBManager(string serverName, string userName, string userPass, string dbName)
+        {
+            this._dbName = dbName;
+            this._connection = new SqlConnection(@"Data Source=" + serverName + ";User id=" + userName + ";Password=" + userPass + ";");
             try
             {
                 this._connection.Open();
@@ -192,7 +208,7 @@ namespace replication
                 Console.WriteLine("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 _log.WarnFormat("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 var temp = this.GetTableInfo(schemaName, tableName);
-                return temp.ColumnNames[0];
+                return "";
             }
             if (result[0].ColumnCount == 0)
             {
@@ -595,22 +611,18 @@ namespace replication
                                         SELECT OBJECT_ID('" + objectSchema + "." + objectName + "');");
             if (result.Count == 0)
             {
-                Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
-                _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
                 return false;
             }
             if (result[0].ColumnCount == 0)
             {
-                Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
-                _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
                 return false;
             }
             if (result[0].Values[0].ToString() == "")
             {
-                Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
-                _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
                 return false;
             }
+            Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
+            _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
             return true;
         }
 
@@ -723,7 +735,7 @@ namespace replication
         /// </param>
         public void CreateDB()
         {
-            this.RunQuery(@"IF DB_ID('" + this._dbName + @"') IS NOT NULL
+            this.RunQuery(@"IF DB_ID('" + this._dbName + @"') IS NULL
                             CREATE DATABASE " + this._dbName + ";");
         }
        
