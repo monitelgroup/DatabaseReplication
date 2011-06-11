@@ -1,4 +1,6 @@
 using System;
+using log4net;
+using log4net.Config;
 
 namespace replication
 {
@@ -7,7 +9,9 @@ namespace replication
     /// </summary>
 	public class ReplicationProcess
 	{
-		
+
+        private static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Конфигурации программы
         /// </summary>
@@ -33,6 +37,7 @@ namespace replication
             if (!dbmSlave.IsConnected())
             {
                 Console.WriteLine("Slave DB is not working");
+                _log.Error("Slave DB is not working");
                 return;
             }
 
@@ -43,18 +48,21 @@ namespace replication
                 if (firstRow.Values[2].ToString() == "INSERTED")
                 {
                     Console.WriteLine("Processing INSERTED event...");
+                    _log.Info("Processing INSERTED event...");
                     dbmSlave.GenerateSqlOnInsert(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
 
                 if (firstRow.Values[2].ToString() == "UPDATED")
                 {
                     Console.WriteLine("Processing UPDATED event...");
+                    _log.Info("Processing UPDATED event...");
                     dbmSlave.GenerateSqlOnUpdate(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
 
                 if (firstRow.Values[2].ToString() == "DELETED")
                 {
                     Console.WriteLine("Processing DELETED event...");
+                    _log.Info("Processing DELETED event...");
                     dbmSlave.GenerateSqlOnDelete(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
                 dbmSlave.RemoveFirst(journalSchema, journalName);
@@ -70,31 +78,40 @@ namespace replication
         /// <param name="stateInfo"></param>
 		public void OnTimedEvent(Object stateInfo) {
         	Console.WriteLine("Timer is started");
+            _log.Info("Timer is started");
             this.ReplicateAll();
     	}
 
+        /// <summary>
+        /// Запуск чтения всех журналов и обработка всех записей
+        /// </summary>
         public void ReplicateAll()
         {
             DBManager dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBName);
             if (!dbmMaster.IsConnected())
             {
                 Console.WriteLine("Master DB is not working");
+                _log.Error("Master DB is not working");
                 return;
             }
             SqlDBStruct masterStruct = dbmMaster.GetDBInfo();
 
             for (int i = 0; i < masterStruct.TablesCount; i++)
             {
-                this.ReplicateOne("ReplicJournals", masterStruct.SchemasNames[i] + masterStruct.TablesNames[i], masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
+                this.ReplicateOne(this._config.SchemeName, masterStruct.SchemasNames[i] + masterStruct.TablesNames[i], masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
             }
         }
 
+        /// <summary>
+        /// Метод создающий журналы и триггеры
+        /// </summary>
         public void OnStart()
         {
             DBManager dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBName);
             if (!dbmMaster.IsConnected())
             {
                 Console.WriteLine("Master DB is not working");
+                _log.Error("Master DB is not working");
                 return;
             }
 
@@ -102,18 +119,19 @@ namespace replication
             if (!dbmSlave.IsConnected())
             {
                 Console.WriteLine("Slave DB is not working");
+                _log.Error("Slave DB is not working");
                 return;
             }
-            dbmSlave.CreateSchema("ReplicJournals");
+            dbmSlave.CreateSchema(this._config.SchemeName);
             
             SqlDBStruct masterStruct = dbmMaster.GetDBInfo();
             for (int i = 0; i < masterStruct.TablesCount; i++)
             {
                 SqlTableStruct tempStruct = dbmMaster.GetTableInfo(masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
-                dbmSlave.CreateJournal(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
-                dbmMaster.CreateTriggerOnInsert(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
-                dbmMaster.CreateTriggerOnUpdate(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
-                dbmMaster.CreateTriggerOnDelete(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                dbmSlave.CreateJournal(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
+                dbmMaster.CreateTriggerOnInsert(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                dbmMaster.CreateTriggerOnUpdate(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                dbmMaster.CreateTriggerOnDelete(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
                 dbmSlave.CreateSchema(masterStruct.SchemasNames[i]);
                 dbmSlave.CreateTable(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
                 dbmSlave.MergeTables(this._config.MasterDBName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);

@@ -3,26 +3,53 @@ using System.Xml;
 
 namespace replication
 {
+    /// <summary>
+    /// Класс позволяющий считать настройки из XML файла
+    /// </summary>
     class ConfLoader
     {
-        XmlDocument xmlDoc;
 
+        XmlDocument _xmlDoc;
+
+        /// <summary>
+        /// Конструктор класса
+        /// </summary>
+        /// <param name="ConfXML">
+        /// Имя конфигурационного файла
+        /// </param>
         public ConfLoader(string ConfXML)
         {
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(ConfXML);
-            this.xmlDoc = xmlDoc;
+            this._xmlDoc = new XmlDocument();
+            this._xmlDoc.Load(ConfXML);
         }
 
-        public string LoadConfig(string param)    // Читеем параметр из конфига, если его нет возвращеем пустую строку
+        /// <summary>
+        /// Получение значения параметра по его имени в виде строки
+        /// </summary>
+        /// <param name="param">
+        /// Имя параметра
+        /// </param>
+        /// <returns>
+        /// Значение параметра, либо пустая строка, если он отсутствует
+        /// </returns>
+        public string LoadConfig(string param)
         {
-            foreach (XmlNode attr in this.xmlDoc.DocumentElement.Attributes)
+            foreach (XmlNode attr in this._xmlDoc.DocumentElement.Attributes)
             {
                 if (param == attr.Name) { return attr.Value; }
             }
             return "";
         }
 
+        /// <summary>
+        /// Получение значения параметра по его имени в виде числа
+        /// </summary>
+        /// <param name="param">
+        /// Имя параметра
+        /// </param>
+        /// <returns>
+        /// Значение параметра
+        /// </returns>
         public int LoadIntConfig(string param)  // Пытаемся преобразовать параметр в число
         {
             return System.Convert.ToInt32(LoadConfig(param));

@@ -1,6 +1,8 @@
 using System;
 using System.Net;
 using System.Net.Mail;
+using log4net;
+using log4net.Config;
 
 namespace replication
 {
@@ -9,6 +11,8 @@ namespace replication
     /// </summary>
 	public class EMailSender
 	{
+        private static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Адресс от которого будет отправлено сообщение
         /// </summary>
@@ -79,7 +83,15 @@ namespace replication
 			msg.To.Add(new MailAddress(adminEMail));
 			msg.Subject = "DataBase Replication: Error!";
 			msg.Body = message;
-			_smtp.Send(msg);
+            try
+            {
+                _smtp.Send(msg);
+            }
+            catch (System.Net.Mail.SmtpException exp)
+            {
+                Console.WriteLine("Error send message. \n Error details: \n {0}", exp.Message);
+                _log.ErrorFormat("Error send message. \n Error details: \n {0}", exp.Message);
+            }
 		}
 		
 	}

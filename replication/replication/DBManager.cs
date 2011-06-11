@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Data.SqlClient;
+using log4net;
+using log4net.Config;
 
 namespace replication
 {
@@ -13,6 +12,7 @@ namespace replication
     /// </summary>
     class DBManager
     {
+        private static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         SqlConnection _connection;
         
         /// <summary>
@@ -39,6 +39,7 @@ namespace replication
             catch (SqlException exp)
             {
                 Console.WriteLine("Can not connect to database... \n Error details: \n {0}", exp.Message);
+                _log.ErrorFormat("Can not connect to database... \n Error details: \n {0}", exp.Message);
             }
         }
 
@@ -54,6 +55,7 @@ namespace replication
             else
             {
                 Console.WriteLine("Disconnection from the database is not required");
+                _log.Warn("Disconnection from the database is not required");
             }
         }
 
@@ -107,6 +109,7 @@ namespace replication
             catch (SqlException exp)
             {
                 Console.WriteLine("Error in query... \n Error details:\n {0}", exp.Message);
+                _log.ErrorFormat("Error in query... \n Error details:\n {0}", exp.Message);
             }
             return result;
         }
@@ -187,12 +190,14 @@ namespace replication
             if (result.Count == 0)
             {
                 Console.WriteLine("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                _log.WarnFormat("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 var temp = this.GetTableInfo(schemaName, tableName);
                 return temp.ColumnNames[0];
             }
             if (result[0].ColumnCount == 0)
             {
                 Console.WriteLine("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                _log.WarnFormat("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 var temp = this.GetTableInfo(schemaName, tableName);
                 return temp.ColumnNames[0];
             }
@@ -225,11 +230,13 @@ namespace replication
             if (result.Count == 0)
             {
                 Console.WriteLine("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                _log.WarnFormat("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 return -1;
             }
             if (result[0].ColumnCount == 0)
             {
                 Console.WriteLine("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                _log.WarnFormat("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
                 return -1;
             }
             return (int)result[0].Values[0]-1;
@@ -247,13 +254,13 @@ namespace replication
         /// <param name="tableStruct">
         /// Структура таблица на которую создается журнал
         /// </param>
-        public void CreateJournal(string schemaName, string tableName, SqlTableStruct tableStruct)
+        public void CreateJournal(string journalSchema, string schemaName, string tableName, SqlTableStruct tableStruct)
         {
-            if (this.IsObjectNotNull("ReplicJournals", schemaName + tableName))
+            if (this.IsObjectNotNull(journalSchema, schemaName + tableName))
             {
                 return;
             }
-            string query = @"USE " + this._dbName + @"; CREATE TABLE ReplicJournals." + schemaName + tableName + @" ( 
+            string query = @"USE " + this._dbName + @"; CREATE TABLE " + journalSchema + "." + schemaName + tableName + @" ( 
                             id INT NOT NULL IDENTITY PRIMARY KEY,
 	                        event_time DATETIME NOT NULL DEFAULT(CURRENT_TIMESTAMP),
 	                        event_type NVARCHAR(10) NOT NULL,
@@ -279,9 +286,9 @@ namespace replication
         /// <param name="tableName">
         /// Имя журнала
         /// </param>
-        public void DeleteJournal(string schemaName, string tableName)
+        public void DeleteJournal(string journalSchema, string schemaName, string tableName)
         {
-            this.RunQuery(@"USE " + this._dbName + @"; DROP TABLE ReplicJournals." + schemaName + tableName + " ;");
+            this.RunQuery(@"USE " + this._dbName + @"; DROP TABLE " + journalSchema + "." + schemaName + tableName + " ;");
         }
 
         /// <summary>
@@ -474,7 +481,7 @@ namespace replication
         /// <param name="slaveDBName">
         /// Имя базы данных в которой расположен журнал
         /// </param>
-        public void CreateTriggerOnInsert(string schemaName, string tableName, string slaveDBName)
+        public void CreateTriggerOnInsert(string journalSchema, string schemaName, string tableName, string slaveDBName)
         {
             if (this.IsObjectNotNull(schemaName, "Trigger_" + tableName + "_insert"))
             {
@@ -484,7 +491,7 @@ namespace replication
                             ON " + this._dbName +  "." +schemaName + @"." + tableName + @" AFTER INSERT
                             AS
 	                            SET NOCOUNT ON;
-	                            INSERT INTO " + slaveDBName + @".ReplicJournals." + schemaName + tableName + @"(event_type";
+	                            INSERT INTO " + slaveDBName + @"." + journalSchema + "." + schemaName + tableName + @"(event_type";
             SqlTableStruct tableStruct = this.GetTableInfo(schemaName,tableName);
             for(int i=0; i<tableStruct.ColumnCount; i++) {
                 query += @", " + tableStruct.ColumnNames[i] + @"_new";
@@ -509,7 +516,7 @@ namespace replication
         /// <param name="slaveDBName">
         /// Имя базы данных в которой расположен журнал
         /// </param>
-        public void CreateTriggerOnUpdate(string schemaName, string tableName, string slaveDBName)
+        public void CreateTriggerOnUpdate(string journalSchema, string schemaName, string tableName, string slaveDBName)
         {
             if (this.IsObjectNotNull(schemaName, "Trigger_" + tableName + "_update"))
             {
@@ -519,7 +526,7 @@ namespace replication
                             ON " + this._dbName + @"." + schemaName + @"." + tableName + @" AFTER UPDATE
                             AS 
 	                            SET NOCOUNT ON;
-	                            INSERT INTO " + slaveDBName + @".ReplicJournals." + schemaName + tableName + @"(event_type";
+	                            INSERT INTO " + slaveDBName + @"." + journalSchema + "." + schemaName + tableName + @"(event_type";
             SqlTableStruct tableStruct = this.GetTableInfo(schemaName, tableName);
             for(int i=0; i<tableStruct.ColumnCount; i++) {
                 query += @", " + tableStruct.ColumnNames[i] + @"_old";
@@ -550,7 +557,7 @@ namespace replication
         /// <param name="slaveDBName">
         /// Имя базы данных в которой расположен журнал
         /// </param>
-        public void CreateTriggerOnDelete(string schemaName, string tableName, string slaveDBName)
+        public void CreateTriggerOnDelete(string journalSchema, string schemaName, string tableName, string slaveDBName)
         {
             if (this.IsObjectNotNull(schemaName, "Trigger_" + tableName + "_delete"))
             {
@@ -560,7 +567,7 @@ namespace replication
                             ON " + this._dbName + @"." + schemaName + @"." + tableName + @" AFTER DELETE
                             AS 
 	                            SET NOCOUNT ON;
-	                            INSERT INTO " + slaveDBName + @".ReplicJournals." + schemaName + tableName + @"(event_type";
+	                            INSERT INTO " + slaveDBName + @"." + journalSchema + "." + schemaName + tableName + @"(event_type";
             SqlTableStruct tableStruct = this.GetTableInfo(schemaName, tableName);
             for(int i=0; i<tableStruct.ColumnCount; i++) {
                 query += @", " + tableStruct.ColumnNames[i] + "_old";
@@ -588,14 +595,20 @@ namespace replication
                                         SELECT OBJECT_ID('" + objectSchema + "." + objectName + "');");
             if (result.Count == 0)
             {
+                Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
+                _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
                 return false;
             }
             if (result[0].ColumnCount == 0)
             {
+                Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
+                _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
                 return false;
             }
             if (result[0].Values[0].ToString() == "")
             {
+                Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
+                _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
                 return false;
             }
             return true;
@@ -617,7 +630,6 @@ namespace replication
         {
             if (this.IsObjectNotNull(schemaName, tableName))
             {
-                Console.WriteLine("Object with name {0}.{1}.{2} already used.", this._dbName, schemaName, tableName);
                 return;
             }
             string query = @"USE " + this._dbName + @";
@@ -709,10 +721,10 @@ namespace replication
         /// <param name="dbName">
         /// Имя базы данных
         /// </param>
-        public void CreateDB(string dbName)
+        public void CreateDB()
         {
-            this.RunQuery(@"IF DB_ID('" + dbName + @"') IS NOT NULL
-                            CREATE DATABASE " + dbName + ";");
+            this.RunQuery(@"IF DB_ID('" + this._dbName + @"') IS NOT NULL
+                            CREATE DATABASE " + this._dbName + ";");
         }
        
     }
