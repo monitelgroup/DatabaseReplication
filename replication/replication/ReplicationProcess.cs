@@ -27,8 +27,8 @@ namespace replication
         /// </param>
         public ReplicationProcess(Configurator config) {
 			this._config = config;
-            this.ConnectMaster(this._config.maxDBErrorCount);
-            this.ConnectSlave(this._config.maxDBErrorCount);
+            this.ConnectMaster(this._config.MaxDBErrorCount);
+            this.ConnectSlave(this._config.MaxDBErrorCount);
 		}
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace replication
         /// </param>
         public void ConnectMaster(int maxErrorCount)
         {
-            if (_config.IsWindowsAuth(_config.MasterAutorization))
+            if (_config.IsWindowsAuth(_config.MasterAuthorization))
             {
                 this._dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBName);
             }
@@ -51,12 +51,12 @@ namespace replication
 
             if (maxErrorCount == 0)
             {
-                string errorMsg = String.Format("Reached the limit of connections to the database Master. DB server name: {0}. Auth type:{1}.", this._config.MasterServerName, this._config.MasterAutorization);
+                string errorMsg = String.Format("Reached the limit of connections to the database Master. DB server name: {0}. Auth type:{1}.", this._config.MasterServerName, this._config.MasterAuthorization);
                 Console.WriteLine(errorMsg);
                 _log.ErrorFormat(errorMsg);
                 if (this._config.SendMail)
                 {
-                    EMailSender smtp = new EMailSender(this._config.progMail, this._config.smtpHost, this._config.smtpUser, this._config.smtpPassword, this._config.smtpPort);
+                    EMailSender smtp = new EMailSender(this._config.ProgMail, this._config.SmtpHost, this._config.SmtpUser, this._config.SmtpPassword, this._config.SmtpPort);
                     smtp.SendMessage(errorMsg,this._config.AdminEMail);
                 }
                 System.Environment.Exit(0);
@@ -64,9 +64,10 @@ namespace replication
 
             if (!this._dbmMaster.IsConnected())
             {
-                Console.WriteLine("Unable to connect to database Master. DB server name: {0}. Auth type:{1}.",this._config.MasterServerName,this._config.MasterAutorization);
-                _log.ErrorFormat("Unable to connect to database Master. DB server name: {0}. Auth type:{1}.", this._config.MasterServerName, this._config.MasterAutorization);
-                System.Threading.Thread.Sleep(this._config.secondaryTimer);
+                string errorMsg = String.Format("Unable to connect to database Master. DB server name: {0}. Auth type:{1}.", this._config.MasterServerName, this._config.MasterAuthorization);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
+                System.Threading.Thread.Sleep(this._config.SecondaryTimer);
                 ConnectMaster(maxErrorCount-1);
             }
         }
@@ -80,7 +81,7 @@ namespace replication
         /// </param>
         public void ConnectSlave(int maxErrorCount)
         {
-            if (_config.IsWindowsAuth(_config.SlaveAutorization))
+            if (_config.IsWindowsAuth(_config.SlaveAuthorization))
             {
                 this._dbmSlave = new DBManager(this._config.SlaveServerName, this._config.SlaveDBName);
             }
@@ -91,12 +92,12 @@ namespace replication
 
             if (maxErrorCount == 0)
             {
-                string errorMsg = String.Format("Reached the limit of connections to the database Slave. DB server name: {0}. Auth type:{1}.", this._config.SlaveServerName, this._config.SlaveAutorization);
+                string errorMsg = String.Format("Reached the limit of connections to the database Slave. DB server name: {0}. Auth type:{1}.", this._config.SlaveServerName, this._config.SlaveAuthorization);
                 Console.WriteLine(errorMsg);
                 _log.ErrorFormat(errorMsg);
                 if (this._config.SendMail)
                 {
-                    EMailSender smtp = new EMailSender(this._config.progMail, this._config.smtpHost, this._config.smtpUser, this._config.smtpPassword, this._config.smtpPort);
+                    EMailSender smtp = new EMailSender(this._config.ProgMail, this._config.SmtpHost, this._config.SmtpUser, this._config.SmtpPassword, this._config.SmtpPort);
                     smtp.SendMessage(errorMsg, this._config.AdminEMail);
                 }
                 System.Environment.Exit(0);
@@ -104,10 +105,10 @@ namespace replication
 
             if (!this._dbmSlave.IsConnected())
             {
-                string errorMsg = String.Format("Unable to connect to database Slave. DB server name: {0}. Auth type:{1}.", this._config.SlaveServerName, this._config.SlaveAutorization);
+                string errorMsg = String.Format("Unable to connect to database Slave. DB server name: {0}. Auth type:{1}.", this._config.SlaveServerName, this._config.SlaveAuthorization);
                 Console.WriteLine(errorMsg);
                 _log.ErrorFormat(errorMsg);
-                System.Threading.Thread.Sleep(this._config.secondaryTimer);
+                System.Threading.Thread.Sleep(this._config.SecondaryTimer);
                 ConnectSlave(maxErrorCount-1);
             }
         }
@@ -119,7 +120,7 @@ namespace replication
   
             if (!this._dbmSlave.IsConnected())
             {
-                this.ConnectSlave(this._config.maxDBErrorCount);
+                this.ConnectSlave(this._config.MaxDBErrorCount);
             }
 
             SqlResult firstRow = this._dbmSlave.ReadFirst(journalSchema, journalName);
@@ -128,22 +129,25 @@ namespace replication
             {
                 if (firstRow.Values[2].ToString() == "INSERTED")
                 {
-                    Console.WriteLine("Processing INSERTED event...");
-                    _log.Info("Processing INSERTED event...");
+                    string eventMsg = "Processing INSERTED event...";
+                    Console.WriteLine(eventMsg);
+                    _log.Info(eventMsg);
                     this._dbmSlave.GenerateSqlOnInsert(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
 
                 if (firstRow.Values[2].ToString() == "UPDATED")
                 {
-                    Console.WriteLine("Processing UPDATED event...");
-                    _log.Info("Processing UPDATED event...");
+                    string eventMsg = "Processing UPDATED event...";
+                    Console.WriteLine(eventMsg);
+                    _log.Info(eventMsg);
                     this._dbmSlave.GenerateSqlOnUpdate(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
 
                 if (firstRow.Values[2].ToString() == "DELETED")
                 {
-                    Console.WriteLine("Processing DELETED event...");
-                    _log.Info("Processing DELETED event...");
+                    string eventMsg = "Processing DELETED event...";
+                    Console.WriteLine(eventMsg);
+                    _log.Info(eventMsg);
                     this._dbmSlave.GenerateSqlOnDelete(journalSchema, journalName, slaveSchema, slaveTable, firstRow.Values[0].ToString());
                 }
                 this._dbmSlave.RemoveFirst(journalSchema, journalName);
@@ -169,13 +173,13 @@ namespace replication
 
             if (!this._dbmMaster.IsConnected())
             {
-                this.ConnectMaster(this._config.maxDBErrorCount);
+                this.ConnectMaster(this._config.MaxDBErrorCount);
             }
             SqlDBStruct masterStruct = this._dbmMaster.GetDBInfo();
 
             for (int i = 0; i < masterStruct.TablesCount; i++)
             {
-                this.ReplicateOne(this._config.SchemeName, masterStruct.SchemasNames[i] + masterStruct.TablesNames[i], masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
+                this.ReplicateOne(this._config.SchemaName, masterStruct.SchemasNames[i] + masterStruct.TablesNames[i], masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
             }
         }
 
@@ -187,24 +191,24 @@ namespace replication
 
             if (!this._dbmMaster.IsConnected())
             {
-                this.ConnectMaster(this._config.maxDBErrorCount);
+                this.ConnectMaster(this._config.MaxDBErrorCount);
             }
 
             if (!this._dbmSlave.IsConnected())
             {
-                this.ConnectSlave(this._config.maxDBErrorCount);
+                this.ConnectSlave(this._config.MaxDBErrorCount);
             }
             this._dbmSlave.CreateDB();
-            this._dbmSlave.CreateSchema(this._config.SchemeName);
+            this._dbmSlave.CreateSchema(this._config.SchemaName);
 
             SqlDBStruct masterStruct = this._dbmMaster.GetDBInfo();
             for (int i = 0; i < masterStruct.TablesCount; i++)
             {
                 SqlTableStruct tempStruct = this._dbmMaster.GetTableInfo(masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);
-                this._dbmSlave.CreateJournal(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
-                this._dbmMaster.CreateTriggerOnInsert(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
-                this._dbmMaster.CreateTriggerOnUpdate(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
-                this._dbmMaster.CreateTriggerOnDelete(this._config.SchemeName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                this._dbmSlave.CreateJournal(this._config.SchemaName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
+                this._dbmMaster.CreateTriggerOnInsert(this._config.SchemaName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                this._dbmMaster.CreateTriggerOnUpdate(this._config.SchemaName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
+                this._dbmMaster.CreateTriggerOnDelete(this._config.SchemaName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName);
                 this._dbmSlave.CreateSchema(masterStruct.SchemasNames[i]);
                 this._dbmSlave.CreateTable(masterStruct.SchemasNames[i], masterStruct.TablesNames[i], tempStruct);
                 this._dbmSlave.MergeTables(this._config.MasterDBName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i], this._config.SlaveDBName, masterStruct.SchemasNames[i], masterStruct.TablesNames[i]);

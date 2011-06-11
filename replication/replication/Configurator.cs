@@ -15,7 +15,7 @@ namespace replication
         /// <summary>
         /// Тип авторизации MS SQL (Windows || Sql) для БД Master
         /// </summary>
-        public string MasterAutorization;
+        public string MasterAuthorization;
 		
         /// <summary>
         /// Имя базы данных master
@@ -40,7 +40,7 @@ namespace replication
         /// <summary>
         /// Тип авторизации MS SQL (Windows || Sql) для БД Slave
         /// </summary>
-        public string SlaveAutorization;
+        public string SlaveAuthorization;
 
         /// <summary>
         /// Имя базы данных slave
@@ -70,7 +70,7 @@ namespace replication
         /// <summary>
         /// Имя схемы в которой будут располагаться журналы
         /// </summary>
-		public string SchemeName;
+		public string SchemaName;
 
         /// <summary>
         /// E-mail адресс администратора
@@ -80,30 +80,41 @@ namespace replication
         /// <summary>
         /// адрес SMTP сервера для отправки почты
         /// </summary>
-		public string smtpHost;
+		public string SmtpHost;
 
         /// <summary>
         /// порт SMTP сервера для отправки почты
         /// </summary>
-		public int smtpPort;
+		public int SmtpPort;
 
         /// <summary>
         /// имя пользователя SMTP сервера для отправки почты
         /// </summary>
-		public string smtpUser;
+		public string SmtpUser;
 
         /// <summary>
         /// пароь пользователя SMTP сервера для отправки почты
         /// </summary>
-		public string smtpPassword;
+		public string SmtpPassword;
 
         /// <summary>
         /// E-mail адресс от которого будет отправлено сообщение
         /// </summary>
-		public string progMail;
+		public string ProgMail;
 
-        public int maxDBErrorCount;
-        public int secondaryTimer;
+        /// <summary>
+        /// Максимально кол-во ошибок при подключении к БД.
+        /// </summary>
+        public int MaxDBErrorCount;
+        
+        /// <summary>
+        /// Время через которое будет выполнено повторное соединение с БД
+        /// </summary>
+        public int SecondaryTimer;
+        
+        /// <summary>
+        /// True - отправлять сообщения об ошибках на e-mail администратора. False - не отправлять
+        /// </summary>
         public bool SendMail;
 
         /// <summary>
@@ -117,32 +128,52 @@ namespace replication
             try
             {
                 var CL = new ConfLoader(configFileName);
-                this.MasterAutorization = CL.LoadConfig("MasterAutorization");
+                //Получаем настройки БД Master
+                this.MasterAuthorization = CL.LoadConfig("MasterAutorization");
                 this.MasterServerName = CL.LoadConfig("MasterServerName");
                 this.MasterDBName = CL.LoadConfig("MasterDBName");
                 this.MasterDBUser = CL.LoadConfig("MasterDBUser");
                 this.MasterDBPassword = CL.LoadConfig("MasterDBPassword");
 
-                this.SlaveAutorization = CL.LoadConfig("SlaveAutorization");
+                //Получаем настройки БД Slave
+                this.SlaveAuthorization = CL.LoadConfig("SlaveAutorization");
                 this.SlaveServerName = CL.LoadConfig("SlaveServerName");
                 this.SlaveDBName = CL.LoadConfig("SlaveDBName");
                 this.SlaveDBUser = CL.LoadConfig("SlaveDBUser");
                 this.SlaveDBPassword = CL.LoadConfig("SlaveDBPassword");
 
+                //Получаем дополнительные настройки программы
+                this.SchemaName = CL.LoadConfig("SchemaName");
+                this.MainTimerValue = CL.LoadIntConfig("MainTimerValue");
+                this.MaxDBErrorCount = CL.LoadIntConfig("MaxDBErrorCount");
+                this.SecondaryTimer = CL.LoadIntConfig("SecondaryTimer");
+                
+                //Получаем настройки почты
                 this.AdminEMail = CL.LoadConfig("AdminEmail");
-                this.SchemeName = CL.LoadConfig("SchemeName");
-                this.MainTimerValue = CL.LoadIntConfig("Timer");
-                this.maxDBErrorCount = 1;
-                this.secondaryTimer = 10000;
-                this.SendMail = true;
+                this.SmtpHost = CL.LoadConfig("SmtpHost");
+                this.SmtpPort = CL.LoadIntConfig("SmtpPort");
+                this.SmtpUser = CL.LoadConfig("SmtpUser");
+                this.SmtpPassword = CL.LoadConfig("SmtpPassword");
+                this.ProgMail = CL.LoadConfig("ProgMail");
+                int send = CL.LoadIntConfig("SendMail");
+                if (send == 1)
+                {
+                    this.SendMail = true;
+                }
+                else
+                {
+                    this.SendMail = false;
+                }
             }
             catch (System.IO.FileNotFoundException exp) {
-                Console.WriteLine("File Not Found. Check file address. \n Error details:\n {0}",exp.Message);
-                _log.ErrorFormat("File Not Found. Check file address. \n Error details:\n {0}", exp.Message);
+                string errorMsg = String.Format("File Not Found. Check file address. \n Error details:\n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
             }
-            catch (System.Xml.XmlException exp) { 
-                Console.WriteLine("Error in XML file. \n Error details:\n {0}", exp.Message);
-                _log.ErrorFormat("Error in XML file. \n Error details:\n {0}", exp.Message);
+            catch (System.Xml.XmlException exp) {
+                string errorMsg = String.Format("Error in XML file. \n Error details:\n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
             }
         }
 

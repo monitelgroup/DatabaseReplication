@@ -89,13 +89,15 @@ namespace replication
             }
             catch (System.Net.Mail.SmtpException exp)
             {
-                Console.WriteLine("Error send message. \n Error details: \n {0}", exp.Message);
-                _log.ErrorFormat("Error send message. \n Error details: \n {0}", exp.Message);
+                string errorMsg = String.Format("Error send message. \n Error details: \n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
             }
             catch (System.ArgumentNullException exp)
             {
-                Console.WriteLine("Error in config. \n Error details: \n {0}", exp.Message);
-                _log.ErrorFormat("Error in config. \n Error details: \n {0}", exp.Message);
+                string errorMsg = String.Format("Error in config. \n Error details: \n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
             }
 		}
 		

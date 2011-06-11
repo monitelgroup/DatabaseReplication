@@ -39,8 +39,9 @@ namespace replication
             }
             catch (SqlException exp)
             {
-                Console.WriteLine("Can not connect to database... \n Error details: \n {0}", exp.Message);
-                _log.ErrorFormat("Can not connect to database... \n Error details: \n {0}", exp.Message);
+                string errorMsg = String.Format("Can not connect to database... \n Error details: \n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
             }
         }
 
@@ -54,8 +55,9 @@ namespace replication
             }
             catch (SqlException exp)
             {
-                Console.WriteLine("Can not connect to database... \n Error details: \n {0}", exp.Message);
-                _log.ErrorFormat("Can not connect to database... \n Error details: \n {0}", exp.Message);
+                string errorMsg = String.Format("Can not connect to database... \n Error details: \n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
             }
         }
 
@@ -70,8 +72,9 @@ namespace replication
             }
             else
             {
-                Console.WriteLine("Disconnection from the database is not required");
-                _log.Warn("Disconnection from the database is not required");
+                string warnMsg = "Disconnection from the database is not required";
+                Console.WriteLine(warnMsg);
+                _log.Warn(warnMsg);
             }
         }
 
@@ -124,8 +127,9 @@ namespace replication
             }
             catch (SqlException exp)
             {
-                Console.WriteLine("Error in query... \n Error details:\n {0}", exp.Message);
-                _log.ErrorFormat("Error in query... \n Error details:\n {0}", exp.Message);
+                string errorMsg = String.Format("Error in query... \n Error details:\n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
             }
             return result;
         }
@@ -205,15 +209,17 @@ namespace replication
                                             AND i.object_id = OBJECT_ID('" + schemaName + "." + tableName + @"');");
             if (result.Count == 0)
             {
-                Console.WriteLine("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
-                _log.WarnFormat("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                string errorMsg = String.Format("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                Console.WriteLine(errorMsg);
+                _log.WarnFormat(errorMsg);
                 var temp = this.GetTableInfo(schemaName, tableName);
                 return "";
             }
             if (result[0].ColumnCount == 0)
             {
-                Console.WriteLine("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
-                _log.WarnFormat("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                string errorMsg = String.Format("Primary key NAME is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                Console.WriteLine(errorMsg);
+                _log.WarnFormat(errorMsg);
                 var temp = this.GetTableInfo(schemaName, tableName);
                 return temp.ColumnNames[0];
             }
@@ -245,14 +251,16 @@ namespace replication
                                             AND i.object_id = OBJECT_ID('" + schemaName + "." + tableName + @"');");
             if (result.Count == 0)
             {
-                Console.WriteLine("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
-                _log.WarnFormat("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                string errorMsg = String.Format("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                Console.WriteLine(errorMsg);
+                _log.WarnFormat(errorMsg);
                 return -1;
             }
             if (result[0].ColumnCount == 0)
             {
-                Console.WriteLine("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
-                _log.WarnFormat("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                string errorMsg = String.Format("Primary key ID is not found in table {0}.{1}.{2}", this._dbName, schemaName, tableName);
+                Console.WriteLine(errorMsg);
+                _log.WarnFormat(errorMsg);
                 return -1;
             }
             return (int)result[0].Values[0]-1;
@@ -621,8 +629,9 @@ namespace replication
             {
                 return false;
             }
-            Console.WriteLine("Obect is already used: {0}.{1}", objectSchema, objectName);
-            _log.WarnFormat("Obect is already used: {0}.{1}", objectSchema, objectName);
+            string warnMsg = String.Format("Obect is already used: {0}.{1}", objectSchema, objectName);
+            Console.WriteLine(warnMsg);
+            _log.WarnFormat(warnMsg);
             return true;
         }
 
