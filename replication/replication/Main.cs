@@ -22,6 +22,8 @@ namespace replication
 
             EventTimer tmr = new EventTimer(config.MainTimerValue, replication.OnTimedEvent);
 			tmr.Start();
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
 	}
 }

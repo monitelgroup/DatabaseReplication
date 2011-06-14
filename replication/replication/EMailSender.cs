@@ -99,6 +99,12 @@ namespace replication
                 Console.WriteLine(errorMsg);
                 _log.ErrorFormat(errorMsg);
             }
+            catch (System.ArgumentException exp)
+            {
+                string errorMsg = String.Format("Error in config. \n Error details: \n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
+            }
 		}
 		
 	}

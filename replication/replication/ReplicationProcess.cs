@@ -49,7 +49,7 @@ namespace replication
                 this._dbmMaster = new DBManager(this._config.MasterServerName, this._config.MasterDBUser, this._config.MasterDBPassword, this._config.MasterDBName);
             }
 
-            if (maxErrorCount == 0)
+            if (maxErrorCount <= 0)
             {
                 string errorMsg = String.Format("Reached the limit of connections to the database Master. DB server name: {0}. Auth type:{1}.", this._config.MasterServerName, this._config.MasterAuthorization);
                 Console.WriteLine(errorMsg);
@@ -90,7 +90,7 @@ namespace replication
                 this._dbmSlave = new DBManager(this._config.SlaveServerName, this._config.SlaveDBUser, this._config.SlaveDBPassword, this._config.SlaveDBName);
             }
 
-            if (maxErrorCount == 0)
+            if (maxErrorCount <= 0)
             {
                 string errorMsg = String.Format("Reached the limit of connections to the database Slave. DB server name: {0}. Auth type:{1}.", this._config.SlaveServerName, this._config.SlaveAuthorization);
                 Console.WriteLine(errorMsg);

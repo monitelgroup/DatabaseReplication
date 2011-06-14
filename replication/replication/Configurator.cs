@@ -129,14 +129,14 @@ namespace replication
             {
                 var CL = new ConfLoader(configFileName);
                 //Получаем настройки БД Master
-                this.MasterAuthorization = CL.LoadConfig("MasterAutorization");
+                this.MasterAuthorization = CL.LoadConfig("MasterAuthorization");
                 this.MasterServerName = CL.LoadConfig("MasterServerName");
                 this.MasterDBName = CL.LoadConfig("MasterDBName");
                 this.MasterDBUser = CL.LoadConfig("MasterDBUser");
                 this.MasterDBPassword = CL.LoadConfig("MasterDBPassword");
 
                 //Получаем настройки БД Slave
-                this.SlaveAuthorization = CL.LoadConfig("SlaveAutorization");
+                this.SlaveAuthorization = CL.LoadConfig("SlaveAuthorization");
                 this.SlaveServerName = CL.LoadConfig("SlaveServerName");
                 this.SlaveDBName = CL.LoadConfig("SlaveDBName");
                 this.SlaveDBUser = CL.LoadConfig("SlaveDBUser");
@@ -144,19 +144,19 @@ namespace replication
 
                 //Получаем дополнительные настройки программы
                 this.SchemaName = CL.LoadConfig("SchemaName");
-                this.MainTimerValue = CL.LoadIntConfig("MainTimerValue");
+                this.MainTimerValue = CL.LoadIntConfig("MainTimer");
                 this.MaxDBErrorCount = CL.LoadIntConfig("MaxDBErrorCount");
-                this.SecondaryTimer = CL.LoadIntConfig("SecondaryTimer");
-                
+                this.SecondaryTimer = CL.LoadIntConfig("SecodaryTimer");
+
                 //Получаем настройки почты
-                this.AdminEMail = CL.LoadConfig("AdminEmail");
+                this.AdminEMail = CL.LoadConfig("AdminEMail");
                 this.SmtpHost = CL.LoadConfig("SmtpHost");
                 this.SmtpPort = CL.LoadIntConfig("SmtpPort");
                 this.SmtpUser = CL.LoadConfig("SmtpUser");
                 this.SmtpPassword = CL.LoadConfig("SmtpPassword");
                 this.ProgMail = CL.LoadConfig("ProgMail");
-                int send = CL.LoadIntConfig("SendMail");
-                if (send == 1)
+                string send = CL.LoadConfig("SendMail");
+                if (send == "true")
                 {
                     this.SendMail = true;
                 }
@@ -165,13 +165,21 @@ namespace replication
                     this.SendMail = false;
                 }
             }
-            catch (System.IO.FileNotFoundException exp) {
+            catch (System.IO.FileNotFoundException exp)
+            {
                 string errorMsg = String.Format("File Not Found. Check file address. \n Error details:\n {0}", exp.Message);
                 Console.WriteLine(errorMsg);
                 _log.ErrorFormat(errorMsg);
             }
-            catch (System.Xml.XmlException exp) {
+            catch (System.Xml.XmlException exp)
+            {
                 string errorMsg = String.Format("Error in XML file. \n Error details:\n {0}", exp.Message);
+                Console.WriteLine(errorMsg);
+                _log.ErrorFormat(errorMsg);
+            }
+            catch (System.FormatException exp)
+            {
+                string errorMsg = String.Format("Error. Wrong format. Error details:\n {0}", exp.Message);
                 Console.WriteLine(errorMsg);
                 _log.ErrorFormat(errorMsg);
             }
